@@ -1,4 +1,4 @@
 package PlayList.Matcher.config;
 
-public class FeignConfig {
+public class YoutubeMusicConfig {
 }
