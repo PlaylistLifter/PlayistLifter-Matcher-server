@@ -28,25 +28,31 @@ public class AuthService {
     private long spotifyAccessExpires;
 
     public AuthService(WebClient.Builder webClientBuilder) {
-        //this.webClient = webClientBuilder.baseUrl("https://spotify.com/v1/me").build();
         this.webClient = webClientBuilder.build();
     }
 
     public String requestAccessToken(String code) {
-        //Basic Auth 헤더 생성
-        String credentials= Base64.getEncoder().encodeToString((clientId+":"+clientSecret).getBytes());
+        String credentials = Base64.getEncoder().encodeToString((clientId + ":" + clientSecret).getBytes());
 
-        //Access Token 요청
-        Map response=webClient.post()
+        Map response = webClient.post()
                 .uri(tokenUri)
-                .header("Authorization", "Basic "+credentials)
+                .header("Authorization", "Basic " + credentials)
                 .header("Content-Type", "application/x-www-form-urlencoded")
-                .bodyValue("grant_type=authorization_code&code="+code+"&redirect_uri="+redirectUri)
+                .bodyValue("grant_type=authorization_code&code=" + code + "&redirect_uri=" + redirectUri)
                 .retrieve()
                 .bodyToMono(Map.class)
                 .block();
-        assert response!=null;
-        return (String)response.get("access_token");
+
+        assert response != null;
+        this.spotifyAccessToken = (String) response.get("access_token");
+        this.spotifyAccessExpires = System.currentTimeMillis() + ((Integer) response.get("expires_in")) * 1000L;
+        return spotifyAccessToken;
     }
 
+    public String getAccessToken() {
+        if (spotifyAccessToken == null || System.currentTimeMillis() > spotifyAccessExpires) {
+            throw new RuntimeException("Spotify access token expired. Please re-authenticate.");
+        }
+        return spotifyAccessToken;
+    }
 }
