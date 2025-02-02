@@ -19,9 +19,17 @@ public class SpotifyController {
         this.spotifyService = spotifyService;
     }
 
-    //http://localhost:8080/spotify/search?keyword=Coldplay
+    //http://localhost:8080/spotify/search?keyword=aespa
     @GetMapping("/search")
     public List<SearchResponseDto> searchTracks(@RequestParam String keyword) {
         return spotifyService.searchTracks(keyword);
+    }
+
+    //http://localhost:8080/spotify/match?artist=aespa&title=supernova
+    @GetMapping("/match")
+    public SearchResponseDto searchBestMatchTrack(
+            @RequestParam String artist,
+            @RequestParam String title) {
+        return spotifyService.searchBestMatchTrack(artist, title);
     }
 }

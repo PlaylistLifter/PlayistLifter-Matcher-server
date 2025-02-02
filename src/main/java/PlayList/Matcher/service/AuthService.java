@@ -55,4 +55,8 @@ public class AuthService {
         }
         return spotifyAccessToken;
     }
+
+    public boolean isAccessTokenExpired() {
+        return spotifyAccessToken == null || System.currentTimeMillis() > spotifyAccessExpires;
+    }
 }

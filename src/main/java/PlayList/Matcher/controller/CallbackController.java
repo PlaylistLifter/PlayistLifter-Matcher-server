@@ -1,4 +1,4 @@
-package PlayList.Matcher.config;
+package PlayList.Matcher.controller;
 
 import PlayList.Matcher.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,4 +25,5 @@ public class CallbackController {
         return "Received Access Token";
 
     }
+
 }

@@ -32,46 +32,19 @@ public class SpotifyService {
     public List<SearchResponseDto> searchTracks(String keyword) {
         List<SearchResponseDto> searchResponseDtoList = new ArrayList<>();
 
-        try{
-            //엑세스 토큰 가져오기
-            //String accessToken = authService.getAccessToken();
-            String accessToken = "BQBsBzCQzwDRVMA1pfoPyZk2ljvBzwTLm9GlR3y_yMwjExy5jX4pS3EpbaE2-J0PNcDYVueVOBGAxiKqK2JzvyBK2JL7X-NEmdEUZCYWAKo3NPyx39oLHtC4WO-ymURBmKp3AysjOcRpFMbyXJbQGAi_NyPP_2fx69EKWZ-O72DLyhLUZEC5es72GR_1tBQRgoV1W-D3ACtfljzri_sjfF6FBc7veo6999dicIZjKMoS0kryNHQUk64ds2XVdXlV0OCxSMwuBP_t-GM-n8puiojIe08ktaLNDith0w-g";
-            //Spotify API 빌드
-            System.out.println("API build에 사용된 accessToken = " + accessToken);
+        try {
+            String accessToken = authService.getAccessToken();
             SpotifyApi spotifyApi = new SpotifyApi.Builder().setAccessToken(accessToken).build();
 
-            //트랙 검색 요쳥
-            System.out.println("입력된 keyword = " + keyword);
-            SearchTracksRequest searchTracksRequest = spotifyApi.searchTracks(keyword).limit(10).build();
+            SearchTracksRequest searchTrackRequest = spotifyApi.searchTracks(keyword)
+                    .limit(10)
+                    .build();
 
-            Paging<Track> searchResult = searchTracksRequest.execute();
+            Paging<Track> searchResult = searchTrackRequest.execute();
             Track[] tracks = searchResult.getItems();
 
-            for(Track track : tracks){
-                String title = track.getName();
-
-                AlbumSimplified album = track.getAlbum();
-
-                ArtistSimplified[] artists = album.getArtists();
-
-                String artistName;
-                if (artists.length > 0) {
-                    artistName = artists[0].getName();
-                } else {
-                    artistName = "Unknown Artist";
-                }
-
-                String imageUrl;
-                Image[] images = album.getImages();
-                if (artists.length > 0) {
-                    imageUrl = images[0].getUrl();
-                } else {
-                    imageUrl = "No Image";
-                }
-
-                String albumName = album.getName();
-
-                searchResponseDtoList.add(spotifyMapper.toSearchDto(artistName,title, albumName, imageUrl));
+            for (Track track : tracks) {
+                searchResponseDtoList.add(convertTrackToDto(track));
             }
 
         } catch (IOException | SpotifyWebApiException | ParseException e) {
@@ -79,5 +52,45 @@ public class SpotifyService {
         }
 
         return searchResponseDtoList;
+    }
+    public SearchResponseDto searchBestMatchTrack(String artistName, String title) {
+        try {
+            String accessToken = authService.getAccessToken();
+            SpotifyApi spotifyApi = new SpotifyApi.Builder().setAccessToken(accessToken).build();
+
+            // 정확한 검색을 위해 "artist:아티스트명 track:노래제목" 형식으로 검색
+            String query = "artist:" + artistName + " track:" + title;
+            SearchTracksRequest searchTrackRequest = spotifyApi.searchTracks(query)
+                    .limit(1) // 가장 적합한 한 개의 결과만 반환
+                    .build();
+
+            Paging<Track> searchResult = searchTrackRequest.execute();
+            Track[] tracks = searchResult.getItems();
+
+            if (tracks.length > 0) {
+                return convertTrackToDto(tracks[0]); // 가장 첫 번째 결과 반환
+            }
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+
+        return SearchResponseDto.builder()
+                .artistName("Unknown Artist")
+                .title("Unknown Title")
+                .albumName("Unknown Album")
+                .imageUrl("NO_IMAGE")
+                .build();
+    }
+
+    private SearchResponseDto convertTrackToDto(Track track) {
+        String title = track.getName();
+        AlbumSimplified album = track.getAlbum();
+        ArtistSimplified[] artists = album.getArtists();
+        String artistName = (artists.length > 0) ? artists[0].getName() : "Unknown Artist";
+        Image[] images = album.getImages();
+        String imageUrl = (images.length > 0) ? images[0].getUrl() : "NO_IMAGE";
+        String albumName = album.getName();
+
+        return spotifyMapper.toSearchDto(artistName, title, albumName, imageUrl);
     }
 }
