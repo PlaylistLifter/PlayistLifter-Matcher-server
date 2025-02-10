@@ -1,13 +1,17 @@
 package PlayList.Matcher.service;
 
 import PlayList.Matcher.dto.SearchResponseDto;
+import PlayList.Matcher.repository.MatchedTrackRepository;
 import org.apache.hc.core5.http.ParseException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.specification.*;
+import se.michaelthelin.spotify.requests.data.playlists.AddItemsToPlaylistRequest;
+import se.michaelthelin.spotify.requests.data.playlists.CreatePlaylistRequest;
 import se.michaelthelin.spotify.requests.data.search.simplified.SearchTracksRequest;
+import se.michaelthelin.spotify.requests.data.users_profile.GetCurrentUsersProfileRequest;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -15,6 +19,7 @@ import java.util.List;
 
 @Service
 public class SpotifyService {
+    private final MatchedTrackRepository matchedTrackRepository;
     @Value("${spotify.client-id}")
     private String clientId;
 
@@ -24,9 +29,10 @@ public class SpotifyService {
     private final AuthService authService;
     private final SpotifyMapper spotifyMapper;
 
-    public SpotifyService(AuthService authService, SpotifyMapper spotifyMapper) {
+    public SpotifyService(AuthService authService, SpotifyMapper spotifyMapper, MatchedTrackRepository matchedTrackRepository) {
         this.authService = authService;
         this.spotifyMapper = spotifyMapper;
+        this.matchedTrackRepository = matchedTrackRepository;
     }
 
     public List<SearchResponseDto> searchTracks(String keyword) {
@@ -68,18 +74,75 @@ public class SpotifyService {
             Track[] tracks = searchResult.getItems();
 
             if (tracks.length > 0) {
-                return convertTrackToDto(tracks[0]); // 가장 첫 번째 결과 반환
+                SearchResponseDto matchedTrack = convertTrackToDto(tracks[0]);
+
+                //검색된 곡을 인메모리 저장소에 저장
+                matchedTrackRepository.saveTrack(matchedTrack);
+                System.out.println("Saved to repository: " + matchedTrack.getTitle()+ " by " + matchedTrack.getArtistName());
+
+                int trackCnt = matchedTrackRepository.getAllTracks().size();
+                System.out.println("trackCnt = " + trackCnt);
+
+                return matchedTrack; // 가장 첫 번째 결과 반환
             }
         } catch (IOException | SpotifyWebApiException | ParseException e) {
             System.out.println("Error: " + e.getMessage());
         }
 
-        return SearchResponseDto.builder()
-                .artistName("Unknown Artist")
-                .title("Unknown Title")
-                .albumName("Unknown Album")
-                .imageUrl("NO_IMAGE")
-                .build();
+        return getDefaultResponse();
+    }
+
+    public String createPlaylist(String userId, String playlistName) {
+        try {
+            String accessToken = authService.getAccessToken();
+            SpotifyApi spotifyApi = new SpotifyApi.Builder().setAccessToken(accessToken).build();
+
+            // 플레이리스트 생성
+            CreatePlaylistRequest createPlaylistRequest = spotifyApi.createPlaylist(userId, playlistName)
+                    .public_(false)
+                    .description("Generated Playlist")
+                    .build();
+
+            var playlist = createPlaylistRequest.execute();
+            String playlistId = playlist.getId();
+
+            // 인메모리 저장소에서 저장된 곡 가져오기
+            List<SearchResponseDto> matchedTracks = matchedTrackRepository.getAllTracks();
+            List<String> trackUris = new ArrayList<>();
+            for (SearchResponseDto track : matchedTracks) {
+                System.out.println("Title= " + track.getTitle() + " Artist= " + track.getArtistName());
+                String uri = getTrackUri(spotifyApi, track.getArtistName(), track.getTitle());
+                if (uri != null) {
+                    trackUris.add(uri);
+                }
+            }
+
+            // 플레이리스트에 트랙 추가
+            if (!trackUris.isEmpty()) {
+                AddItemsToPlaylistRequest addItemsRequest = spotifyApi
+                        .addItemsToPlaylist(playlistId, trackUris.toArray(new String[0]))
+                        .build();
+                addItemsRequest.execute();
+            }
+
+            return playlist.getExternalUrls().get("spotify"); // 생성된 플레이리스트 URL 반환
+
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            System.out.println("Error: " + e.getMessage());
+            return "Error creating playlist";
+        }
+    }
+
+    private String getTrackUri(SpotifyApi spotifyApi, String artist, String title) {
+        try {
+            String query = "artist:" + artist + " track:" + title;
+            SearchTracksRequest searchTrackRequest = spotifyApi.searchTracks(query).limit(1).build();
+            Track[] tracks = searchTrackRequest.execute().getItems();
+            return (tracks.length > 0) ? tracks[0].getUri() : null;
+        } catch (Exception e) {
+            System.out.println("Error fetching track URI: " + e.getMessage());
+            return null;
+        }
     }
 
     private SearchResponseDto convertTrackToDto(Track track) {
@@ -92,5 +155,29 @@ public class SpotifyService {
         String albumName = album.getName();
 
         return spotifyMapper.toSearchDto(artistName, title, albumName, imageUrl);
+    }
+
+    private SearchResponseDto getDefaultResponse() {
+        return SearchResponseDto.builder()
+                .artistName("Unknown Artist")
+                .title("Unknown Title")
+                .albumName("Unknown Album")
+                .imageUrl("NO_IMAGE")
+                .build();
+    }
+    public String getCurrentUserId() {
+        try {
+            String accessToken = authService.getAccessToken();
+            SpotifyApi spotifyApi = new SpotifyApi.Builder().setAccessToken(accessToken).build();
+
+            // 사용자 프로필 정보 요청
+            GetCurrentUsersProfileRequest userProfileRequest = spotifyApi.getCurrentUsersProfile().build();
+            User user = userProfileRequest.execute();
+
+            return user.getId(); // Spotify 사용자 ID 반환
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            System.out.println("Error fetching user ID: " + e.getMessage());
+            return "Unknown User";
+        }
     }
 }
