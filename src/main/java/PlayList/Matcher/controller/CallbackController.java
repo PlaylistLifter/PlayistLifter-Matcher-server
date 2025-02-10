@@ -15,7 +15,7 @@ public class CallbackController {
     private AuthService authService;
     private static final Logger log = Logger.getLogger(CallbackController.class.getName());
 
-    //스포티파이 개발자 계정에 등록해놓은 redirect url이 http://localhost:8080/callback
+    //스포티파이 개발자 계정에 등록해놓은 redirect url이 http://localhost:8080/callback이다
     @GetMapping("/callback")
     public String callback(@RequestParam String code){
         String accessToken = authService.requestAccessToken(code);

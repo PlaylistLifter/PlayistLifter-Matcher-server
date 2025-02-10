@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>YouTube 링크 입력</title>
+    <script>
+        function sendYouTubeLink() {
+            let youtubeLink = document.getElementById("youtubeLink").value;
+
+            fetch("/link/send-link", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ "youtubeUrl": youtubeLink })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("result").innerText = "Python 응답: " + JSON.stringify(data);
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+</head>
+<body>
+<h2>YouTube 링크 입력</h2>
+<input type="text" id="youtubeLink" placeholder="YouTube 링크 입력">
+<button onclick="sendYouTubeLink()">전송</button>
+
+<h3>응답 결과:</h3>
+<p id="result"></p>
+</body>
+</html>
