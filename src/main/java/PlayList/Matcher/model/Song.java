@@ -1,11 +1,13 @@
 package PlayList.Matcher.model;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@ToString
 public class Song {
-
-    private long id;
-    private String title;
     private String artist;
-    private String appleMusicId;
-    private MatchStatus matchStatus;
-
+    private String title;
 }
