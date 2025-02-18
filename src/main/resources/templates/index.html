@@ -11,11 +11,48 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ "youtubeUrl": youtubeLink })
             })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("result").innerText = "Python 응답: " + JSON.stringify(data);
-            })
-            .catch(error => console.error("Error:", error));
+                .then(response => response.json())
+                .then(data => {
+                    let resultDiv = document.getElementById("result");
+                    resultDiv.innerHTML = "<h3>Python 응답:</h3>"; // 기존 내용 초기화
+
+                    if (Array.isArray(data.songs)) {
+                        data.songs.forEach(song => {
+                            let songContainer = document.createElement("div");
+                            songContainer.style.display = "flex";
+                            songContainer.style.alignItems = "center";
+                            songContainer.style.marginBottom = "10px";
+
+                            // 노래 제목 표시
+                            let songText = document.createElement("p");
+                            songText.innerText = `🎵 ${song.artist} - ${song.title}`;
+                            songText.style.marginRight = "10px";
+
+                            // 매칭하기 버튼
+                            let matchButton = document.createElement("button");
+                            matchButton.innerText = "매칭하기";
+                            matchButton.onclick = function() {
+                                searchSpotifyMatch(song.artist, song.title);
+                            };
+
+                            // 요소 추가
+                            songContainer.appendChild(songText);
+                            songContainer.appendChild(matchButton);
+                            resultDiv.appendChild(songContainer);
+                        });
+                    } else {
+                        resultDiv.innerHTML += "<p>노래 정보를 가져올 수 없습니다.</p>";
+                    }
+                })
+                .catch(error => {
+                    console.error("Error:", error);
+                    document.getElementById("result").innerHTML = "<p>오류 발생: " + error.message + "</p>";
+                });
+        }
+
+        function searchSpotifyMatch(artist, title) {
+            let url = `/spotify/match?artist=${artist}&title=${title}`;
+            window.open(url, '_blank');  // 새 탭에서 열기
         }
     </script>
 </head>
@@ -23,8 +60,7 @@
 <h2>YouTube 링크 입력</h2>
 <input type="text" id="youtubeLink" placeholder="YouTube 링크 입력">
 <button onclick="sendYouTubeLink()">전송</button>
-
-<h3>응답 결과:</h3>
-<p id="result"></p>
+<hr>
+<div id="result"></div> <!-- 응답이 표시될 영역 -->
 </body>
 </html>
