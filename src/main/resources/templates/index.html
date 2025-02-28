@@ -14,28 +14,37 @@
                 .then(response => response.json())
                 .then(data => {
                     let resultDiv = document.getElementById("result");
-                    resultDiv.innerHTML = "<h3>Python 응답:</h3>"; // 기존 내용 초기화
+                    resultDiv.innerHTML = ""; // 기존 내용 초기화
 
-                    if (Array.isArray(data.songs)) {
+                    // 🎬 유튜브 영상 제목 출력
+                    if (data.title) {
+                        let titleHeading = document.createElement("h3");
+                        titleHeading.innerText = `🎬 유튜브 영상 제목: ${data.title}`;
+                        resultDiv.appendChild(titleHeading);
+                    }
+
+                    let songListHeading = document.createElement("h3");
+                    songListHeading.innerText = "🎵 추출된 노래 목록:";
+                    resultDiv.appendChild(songListHeading);
+
+                    // 🎵 노래 목록 출력
+                    if (Array.isArray(data.songs) && data.songs.length > 0) {
                         data.songs.forEach(song => {
                             let songContainer = document.createElement("div");
                             songContainer.style.display = "flex";
                             songContainer.style.alignItems = "center";
                             songContainer.style.marginBottom = "10px";
 
-                            // 노래 제목 표시
                             let songText = document.createElement("p");
                             songText.innerText = `🎵 ${song.artist} - ${song.title}`;
                             songText.style.marginRight = "10px";
 
-                            // 매칭하기 버튼
                             let matchButton = document.createElement("button");
                             matchButton.innerText = "매칭하기";
                             matchButton.onclick = function() {
                                 searchSpotifyMatch(song.artist, song.title);
                             };
 
-                            // 요소 추가
                             songContainer.appendChild(songText);
                             songContainer.appendChild(matchButton);
                             resultDiv.appendChild(songContainer);
@@ -52,9 +61,10 @@
 
         function searchSpotifyMatch(artist, title) {
             let url = `/spotify/match?artist=${artist}&title=${title}`;
-            window.open(url, '_blank');  // 새 탭에서 열기
+            window.open(url, '_blank');
         }
     </script>
+
 </head>
 <body>
 <h2>YouTube 링크 입력</h2>
