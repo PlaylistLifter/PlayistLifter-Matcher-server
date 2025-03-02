@@ -1,8 +1,13 @@
 package PlayList.Matcher.service;
 
 import PlayList.Matcher.dto.SearchResponseDto;
+import PlayList.Matcher.model.Playlist;
+import PlayList.Matcher.model.Song;
 import PlayList.Matcher.repository.MatchedTrackRepository;
+import PlayList.Matcher.repository.PlaylistRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.core5.http.ParseException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import se.michaelthelin.spotify.SpotifyApi;
@@ -17,9 +22,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class SpotifyService {
     private final MatchedTrackRepository matchedTrackRepository;
+
+    @Autowired
+    private PlaylistRepository playlistRepository;
+
     @Value("${spotify.client-id}")
     private String clientId;
 
@@ -90,6 +100,24 @@ public class SpotifyService {
         }
 
         return getDefaultResponse();
+    }
+
+    public List<SearchResponseDto> searchBestMatchForAllSongs(){
+        List<SearchResponseDto> matchedTracks= new ArrayList<>();
+        List<Playlist> playlists=playlistRepository.findAll();
+
+        for(Playlist playlist:playlists){
+            log.info("Playlist: "+playlist.getTitle());
+
+            for(Song song:playlist.getSongs()){
+                log.info("Song: "+song.getArtist()+" "+song.getTitle());
+
+                SearchResponseDto result=searchBestMatchTrack(song.getArtist(), song.getTitle());
+
+                if(result!=null)matchedTracks.add(result);
+            }
+        }
+        return matchedTracks;
     }
 
     public String createPlaylist(String userId, String playlistName) {
