@@ -1,7 +1,10 @@
 package PlayList.Matcher.controller;
 
 import PlayList.Matcher.dto.SearchResponseDto;
+import PlayList.Matcher.model.Playlist;
+import PlayList.Matcher.repository.PlaylistRepository;
 import PlayList.Matcher.service.SpotifyService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -12,6 +15,8 @@ public class SpotifyController {
 
     private final SpotifyService spotifyService;
 
+    @Autowired
+    private PlaylistRepository playlistRepository;
 
     public SpotifyController(SpotifyService spotifyService) {
         this.spotifyService = spotifyService;
@@ -43,4 +48,23 @@ public class SpotifyController {
     public String getUserId() {
         return spotifyService.getCurrentUserId();
     }
+
+    //http://localhost:8080/spotify/match-all
+    @GetMapping("/match-all")
+    public List<SearchResponseDto> matchAllSongs(){
+        return spotifyService.searchBestMatchForAllSongs();
+    }
+
+    //http://localhost:8080/spotify/create-playlist2
+    @GetMapping("/create-playlist2")
+    public String createPlaylist2(){
+        List<Playlist> playlists=playlistRepository.findAll();
+
+        Playlist latest= playlists.get(playlists.size()-1);
+        String title= latest.getTitle();
+
+        String userId = spotifyService.getCurrentUserId();
+        return spotifyService.createPlaylist(userId, title);
+    }
+
 }
