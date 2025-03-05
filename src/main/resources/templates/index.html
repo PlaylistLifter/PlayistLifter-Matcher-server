@@ -1,11 +1,15 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html>
 <head>
-    <title>YouTube 링크 입력</title>
+    <meta charset="UTF-8">
+    <title>YouTube Playlist to Spotify</title>
     <script>
+        let playlistData = null;  // /link/send-link로 받아온 전체 플레이리스트 정보
+        let songsData = [];       // 원래 받은 노래 배열
+
+        // 1. 유튜브 링크 전송 및 플레이리스트 정보 수신
         function sendYouTubeLink() {
             let youtubeLink = document.getElementById("youtubeLink").value;
-
             fetch("/link/send-link", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -13,64 +17,187 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    let resultDiv = document.getElementById("result");
-                    resultDiv.innerHTML = ""; // 기존 내용 초기화
-
-                    // 🎬 유튜브 영상 제목 출력
-                    if (data.title) {
-                        let titleHeading = document.createElement("h3");
-                        titleHeading.innerText = `🎬 유튜브 영상 제목: ${data.title}`;
-                        resultDiv.appendChild(titleHeading);
-                    }
-
-                    let songListHeading = document.createElement("h3");
-                    songListHeading.innerText = "🎵 추출된 노래 목록:";
-                    resultDiv.appendChild(songListHeading);
-
-                    // 🎵 노래 목록 출력
-                    if (Array.isArray(data.songs) && data.songs.length > 0) {
-                        data.songs.forEach(song => {
-                            let songContainer = document.createElement("div");
-                            songContainer.style.display = "flex";
-                            songContainer.style.alignItems = "center";
-                            songContainer.style.marginBottom = "10px";
-
-                            let songText = document.createElement("p");
-                            songText.innerText = `🎵 ${song.artist} - ${song.title}`;
-                            songText.style.marginRight = "10px";
-
-                            let matchButton = document.createElement("button");
-                            matchButton.innerText = "매칭하기";
-                            matchButton.onclick = function() {
-                                searchSpotifyMatch(song.artist, song.title);
-                            };
-
-                            songContainer.appendChild(songText);
-                            songContainer.appendChild(matchButton);
-                            resultDiv.appendChild(songContainer);
-                        });
-                    } else {
-                        resultDiv.innerHTML += "<p>노래 정보를 가져올 수 없습니다.</p>";
-                    }
+                    playlistData = data;
+                    // 받아온 전체 노래 배열을 전역 변수에 저장
+                    songsData = Array.isArray(data.songs) ? data.songs : [];
+                    displayPlaylistData();
                 })
                 .catch(error => {
                     console.error("Error:", error);
-                    document.getElementById("result").innerHTML = "<p>오류 발생: " + error.message + "</p>";
+                    document.getElementById("result").innerHTML = "오류 발생: " + error.message;
                 });
         }
 
-        function searchSpotifyMatch(artist, title) {
-            let url = `/spotify/match?artist=${artist}&title=${title}`;
-            window.open(url, '_blank');
+        // 2. 플레이리스트 정보 및 노래 목록(체크박스 포함) 화면 표시
+        function displayPlaylistData() {
+            let resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = "";
+
+            // 플레이리스트 제목 표시
+            if (playlistData.title) {
+                let titleEl = document.createElement("h3");
+                titleEl.innerText = "유튜브 플레이리스트 제목: " + playlistData.title;
+                resultDiv.appendChild(titleEl);
+            }
+
+            // 전체 선택 버튼
+            let selectAllBtn = document.createElement("button");
+            selectAllBtn.innerText = "전체 선택/해제";
+            selectAllBtn.onclick = toggleSelectAll;
+            resultDiv.appendChild(selectAllBtn);
+
+            // 노래 목록 컨테이너 생성
+            let songsContainer = document.createElement("div");
+            songsContainer.id = "songsContainer";
+            songsContainer.style.marginTop = "10px";
+            resultDiv.appendChild(songsContainer);
+
+            // 각 노래를 체크박스와 함께 출력
+            if (songsData.length > 0) {
+                songsData.forEach((song, index) => {
+                    let songDiv = document.createElement("div");
+                    songDiv.style.display = "flex";
+                    songDiv.style.alignItems = "center";
+                    songDiv.style.marginBottom = "5px";
+
+                    let checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.className = "songCheckbox";
+                    checkbox.id = "songCheckbox" + index;
+                    checkbox.onchange = checkSelection;
+
+                    let label = document.createElement("label");
+                    label.htmlFor = "songCheckbox" + index;
+                    label.innerText = ` ${song.artist} - ${song.title}`;
+
+                    songDiv.appendChild(checkbox);
+                    songDiv.appendChild(label);
+                    songsContainer.appendChild(songDiv);
+                });
+            } else {
+                songsContainer.innerHTML = "<p>노래 정보를 가져올 수 없습니다.</p>";
+            }
+
+            // 버튼 초기화
+            document.getElementById("savePlaylistBtn").style.display = "none";
+            document.getElementById("matchAllBtn").style.display = "none";
+            document.getElementById("createPlaylistBtn").style.display = "none";
+        }
+
+        // 전체 선택/해제 토글 기능
+        function toggleSelectAll() {
+            let checkboxes = document.querySelectorAll(".songCheckbox");
+            // 모든 체크박스가 체크되어 있으면 해제, 아니면 모두 체크
+            let allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+            checkSelection();
+        }
+
+        // 체크박스 상태에 따라 "플레이리스트 저장" 버튼 표시
+        function checkSelection() {
+            let checkboxes = document.querySelectorAll(".songCheckbox");
+            let anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+            let saveBtn = document.getElementById("savePlaylistBtn");
+            saveBtn.style.display = anyChecked ? "block" : "none";
+        }
+
+        // 3. 선택한 노래들만 포함하여 플레이리스트 저장 (/api/playlist/add)
+        function savePlaylist() {
+            let checkboxes = document.querySelectorAll(".songCheckbox");
+            let selectedSongs = [];
+            checkboxes.forEach((cb, index) => {
+                if (cb.checked) {
+                    selectedSongs.push(songsData[index]);
+                }
+            });
+
+            if (selectedSongs.length === 0) {
+                alert("선택된 노래가 없습니다.");
+                return;
+            }
+
+            // 저장할 데이터: 원래 플레이리스트 제목과 선택한 노래들만 포함
+            let dataToSave = {
+                title: playlistData.title,
+                songs: selectedSongs
+            };
+
+            fetch("/api/playlist/add", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dataToSave)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("플레이리스트 저장 완료:", data);
+                    alert("플레이리스트 저장 완료");
+                    // 저장 후 매칭 버튼 표시
+                    document.getElementById("matchAllBtn").style.display = "block";
+                })
+                .catch(error => {
+                    console.error("Error saving playlist:", error);
+                    alert("플레이리스트 저장 실패: " + error.message);
+                });
+        }
+
+        // 4. 저장된 모든 노래에 대해 매칭 수행 (/spotify/match-all)
+        function matchAllSongs() {
+            fetch("/spotify/match-all")
+                .then(response => response.json())
+                .then(data => {
+                    console.log("매칭된 노래들:", data);
+                    alert("노래 매칭 완료");
+                    // 매칭 후 플레이리스트 생성 버튼 표시
+                    document.getElementById("createPlaylistBtn").style.display = "block";
+                })
+                .catch(error => {
+                    console.error("Error matching songs:", error);
+                    alert("노래 매칭 실패: " + error.message);
+                });
+        }
+
+        // 5. 매칭 결과를 바탕으로 Spotify 플레이리스트 생성 (/spotify/create-playlist2)
+        function createPlaylist() {
+            fetch("/spotify/create-playlist2")
+                .then(response => response.text())
+                .then(playlistUrl => {
+                    alert("Spotify 플레이리스트 생성 완료");
+                    window.open(playlistUrl, "_blank");
+                })
+                .catch(error => {
+                    console.error("Error creating playlist:", error);
+                    alert("플레이리스트 생성 실패: " + error.message);
+                });
+        }
+
+        // 6. Playlist와 MatchedTrack 리포지토리 초기화 함수 (백엔드 엔드포인트 호출)
+        function clearRepositories() {
+            Promise.all([
+                fetch("/api/playlist/clear", { method: "POST" }),
+                fetch("/api/matched/clear", { method: "POST" })
+            ])
+                .then(() => {
+                    alert("리포지토리 초기화 완료");
+                })
+                .catch(error => {
+                    console.error("Error clearing repositories:", error);
+                    alert("리포지토리 초기화 실패: " + error.message);
+                });
         }
     </script>
-
 </head>
 <body>
 <h2>YouTube 링크 입력</h2>
 <input type="text" id="youtubeLink" placeholder="YouTube 링크 입력">
 <button onclick="sendYouTubeLink()">전송</button>
 <hr>
-<div id="result"></div> <!-- 응답이 표시될 영역 -->
+<div id="result"></div>
+<!-- 단계별 버튼 -->
+<button id="savePlaylistBtn" style="display:none;" onclick="savePlaylist()">플레이리스트 저장</button>
+<button id="matchAllBtn" style="display:none;" onclick="matchAllSongs()">노래 매칭</button>
+<button id="createPlaylistBtn" style="display:none;" onclick="createPlaylist()">Spotify 플레이리스트 생성</button>
+<br><br>
+<!-- Repository 초기화 버튼 -->
+<button id="clearRepoBtn" onclick="clearRepositories()">리포지토리 초기화</button>
 </body>
 </html>

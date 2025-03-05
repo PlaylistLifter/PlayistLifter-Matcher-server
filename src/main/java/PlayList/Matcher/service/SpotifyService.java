@@ -1,7 +1,7 @@
 package PlayList.Matcher.service;
 
 import PlayList.Matcher.dto.SearchResponseDto;
-import PlayList.Matcher.model.Playlist;
+import PlayList.Matcher.model.YoutubePlaylist;
 import PlayList.Matcher.model.Song;
 import PlayList.Matcher.repository.MatchedTrackRepository;
 import PlayList.Matcher.repository.PlaylistRepository;
@@ -103,13 +103,14 @@ public class SpotifyService {
     }
 
     public List<SearchResponseDto> searchBestMatchForAllSongs(){
+        matchedTrackRepository.clearTracks();
         List<SearchResponseDto> matchedTracks= new ArrayList<>();
-        List<Playlist> playlists=playlistRepository.findAll();
+        List<YoutubePlaylist> youtubePlaylists =playlistRepository.findAll();
 
-        for(Playlist playlist:playlists){
-            log.info("Playlist: "+playlist.getTitle());
+        for(YoutubePlaylist youtubePlaylist : youtubePlaylists){
+            log.info("Playlist: "+ youtubePlaylist.getTitle());
 
-            for(Song song:playlist.getSongs()){
+            for(Song song: youtubePlaylist.getSongs()){
                 log.info("Song: "+song.getArtist()+" "+song.getTitle());
 
                 SearchResponseDto result=searchBestMatchTrack(song.getArtist(), song.getTitle());
@@ -119,6 +120,29 @@ public class SpotifyService {
         }
         return matchedTracks;
     }
+    public List<SearchResponseDto> searchBestMatchForLatestPlaylist(){
+        matchedTrackRepository.clearTracks();
+        List<YoutubePlaylist> youtubePlaylists = playlistRepository.findAll();
+
+        if(youtubePlaylists.isEmpty()){
+            return new ArrayList<>();
+        }
+
+        // 최신 플레이리스트만 선택
+        YoutubePlaylist latest = youtubePlaylists.get(youtubePlaylists.size() - 1);
+        log.info("Processing latest playlist: " + latest.getTitle());
+
+        List<SearchResponseDto> matchedTracks = new ArrayList<>();
+        for(Song song: latest.getSongs()){
+            log.info("Song: " + song.getArtist() + " " + song.getTitle());
+            SearchResponseDto result = searchBestMatchTrack(song.getArtist(), song.getTitle());
+            if(result != null) {
+                matchedTracks.add(result);
+            }
+        }
+        return matchedTracks;
+    }
+
 
     public String createPlaylist(String userId, String playlistName) {
         try {
