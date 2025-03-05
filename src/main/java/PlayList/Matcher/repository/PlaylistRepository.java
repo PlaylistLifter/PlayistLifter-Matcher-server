@@ -1,6 +1,6 @@
 package PlayList.Matcher.repository;
 
-import PlayList.Matcher.model.Playlist;
+import PlayList.Matcher.model.YoutubePlaylist;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -8,13 +8,17 @@ import java.util.List;
 
 @Repository
 public class PlaylistRepository {
-    private final List<Playlist> playlistStorage = new ArrayList<>();
+    private final List<YoutubePlaylist> youtubePlaylistStorage = new ArrayList<>();
 
-    public void save(Playlist playlist) {
-        playlistStorage.add(playlist);
+    public void save(YoutubePlaylist youtubePlaylist) {
+        youtubePlaylistStorage.add(youtubePlaylist);
     }
 
-    public List<Playlist> findAll() {
-        return new ArrayList<>(playlistStorage);
+    public List<YoutubePlaylist> findAll() {
+        return new ArrayList<>(youtubePlaylistStorage);
+    }
+
+    public void clear() {
+        youtubePlaylistStorage.clear();
     }
 }

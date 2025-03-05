@@ -12,7 +12,7 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class Playlist {
+public class YoutubePlaylist {
     private String title;
     private List<Song> songs;
 }
