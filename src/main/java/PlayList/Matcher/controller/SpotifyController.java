@@ -78,6 +78,7 @@ public class SpotifyController {
         Map<String, Object> response = new HashMap<>();
         response.put("id", user.getId());
         response.put("displayName", user.getDisplayName());
+        response.put("images", user.getImages());
         response.put("email", user.getEmail());
         return response;
     }
