@@ -26,6 +26,8 @@ import java.util.List;
 @Service
 public class SpotifyService {
     private final MatchedTrackRepository matchedTrackRepository;
+    private final AuthService authService;
+    private final SpotifyMapper spotifyMapper;
 
     @Autowired
     private PlaylistRepository playlistRepository;
@@ -36,8 +38,6 @@ public class SpotifyService {
     @Value("${spotify.client-secret}")
     private String clientSecret;
 
-    private final AuthService authService;
-    private final SpotifyMapper spotifyMapper;
 
     public SpotifyService(AuthService authService, SpotifyMapper spotifyMapper, MatchedTrackRepository matchedTrackRepository) {
         this.authService = authService;
@@ -231,5 +231,26 @@ public class SpotifyService {
             System.out.println("Error fetching user ID: " + e.getMessage());
             return "Unknown User";
         }
+    }
+
+    public User getCurrnetUserProfile() {
+        try {
+            // 액세스 토큰 획득
+            String accessToeken = authService.getAccessToken();
+
+            //spotifyApi 인스턴스 생성
+            SpotifyApi spotifyApi = new SpotifyApi.Builder()
+                    .setAccessToken(accessToeken).build();
+
+            // 현재 프로필 요청
+            GetCurrentUsersProfileRequest request = spotifyApi.getCurrentUsersProfile().build();
+            User user = request.execute();
+
+            return user;
+        } catch (Exception e) {
+            // 토큰 만료, 네트워크 에러 등 처리
+            throw new RuntimeException("Error fetching user ID: " + e.getMessage());
+        }
+
     }
 }

@@ -100,4 +100,10 @@ public class AuthService {
     public boolean isAccessTokenExpired() {
         return spotifyAccessToken == null || System.currentTimeMillis() > spotifyAccessExpires;
     }
+
+    public void logout() {
+        this.spotifyAccessToken = null;
+        this.spotifyRefreshToken = null;
+        this.spotifyAccessExpires = 0L;
+    }
 }

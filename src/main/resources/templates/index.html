@@ -3,9 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <title>YouTube Playlist to Spotify</title>
+    <style>
+        /* 로그인 버튼 / 사용자 정보 영역 스타일 */
+        .login-button {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            padding: 8px 16px;
+            font-size: 14px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .login-button:hover {
+            background-color: #0056b3;
+        }
+        .logout-button, .change-account-button {
+            padding: 6px 12px;
+            font-size: 12px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 8px;
+            margin-right: 5px;
+        }
+        .logout-button:hover {
+            background-color: #c82333;
+        }
+        .change-account-button:hover {
+            background-color: #c82333;
+        }
+        .user-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background-color: #eee;
+            padding: 8px;
+            border-radius: 4px;
+        }
+    </style>
     <script>
         let playlistData = null;  // /link/send-link로 받아온 전체 플레이리스트 정보
         let songsData = [];       // 원래 받은 노래 배열
+
+        // 페이지 로드 시 사용자 로그인 여부 확인
+        window.addEventListener('DOMContentLoaded', () => {
+            checkUserLoginStatus();
+        });
+
+        // 0. 현재 사용자 정보 요청 → 성공 시 사용자 정보와 로그아웃/계정 변경 버튼, 실패 시 로그인 버튼 표시
+        function checkUserLoginStatus() {
+            fetch('/spotify/me')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Not logged in');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 로그인된 상태: 사용자 정보와 로그아웃, 계정 변경 버튼 표시
+                    showUserInfo(data);
+                })
+                .catch(error => {
+                    // 로그인되지 않은 상태: 로그인 버튼 표시
+                    showLoginButton();
+                });
+        }
+
+        // 로그인 버튼 표시 (로그인 안 된 경우)
+        function showLoginButton() {
+            const authSection = document.getElementById('authSection');
+            authSection.innerHTML = `
+        <button class="login-button" onclick="window.location.href='/login'">
+          로그인
+        </button>
+      `;
+        }
+
+        // 사용자 정보와 로그아웃/계정 변경 버튼 표시 (로그인 된 경우)
+        function showUserInfo(userData) {
+            const authSection = document.getElementById('authSection');
+            const displayName = userData.displayName || userData.id;
+            authSection.innerHTML = `
+        <div class="user-info">
+          <p>안녕하세요, <strong>${displayName}</strong>님!</p>
+          <p><small>사용자: ${userData.displayName || '정보 없음'}</small></p>
+          <p><small>이메일: ${userData.email || '정보 없음'}</small></p>
+          <button class="logout-button" onclick="window.location.href='/logout'">로그아웃</button>
+          <button class="change-account-button" onclick="window.location.href='/logout?redirect=login'">계정 변경하기</button>
+        </div>
+      `;
+        }
 
         // 1. 유튜브 링크 전송 및 플레이리스트 정보 수신
         function sendYouTubeLink() {
@@ -87,7 +181,6 @@
         // 전체 선택/해제 토글 기능
         function toggleSelectAll() {
             let checkboxes = document.querySelectorAll(".songCheckbox");
-            // 모든 체크박스가 체크되어 있으면 해제, 아니면 모두 체크
             let allChecked = Array.from(checkboxes).every(cb => cb.checked);
             checkboxes.forEach(cb => cb.checked = !allChecked);
             checkSelection();
@@ -116,7 +209,6 @@
                 return;
             }
 
-            // 저장할 데이터: 원래 플레이리스트 제목과 선택한 노래들만 포함
             let dataToSave = {
                 title: playlistData.title,
                 songs: selectedSongs
@@ -131,7 +223,6 @@
                 .then(data => {
                     console.log("플레이리스트 저장 완료:", data);
                     alert("플레이리스트 저장 완료");
-                    // 저장 후 매칭 버튼 표시
                     document.getElementById("matchAllBtn").style.display = "block";
                 })
                 .catch(error => {
@@ -147,7 +238,6 @@
                 .then(data => {
                     console.log("매칭된 노래들:", data);
                     alert("노래 매칭 완료");
-                    // 매칭 후 플레이리스트 생성 버튼 표시
                     document.getElementById("createPlaylistBtn").style.display = "block";
                 })
                 .catch(error => {
@@ -170,7 +260,7 @@
                 });
         }
 
-        // 6. Playlist와 MatchedTrack 리포지토리 초기화 함수 (백엔드 엔드포인트 호출)
+        // 6. Playlist와 MatchedTrack 리포지토리 초기화 (/api/playlist/clear, /api/matched/clear)
         function clearRepositories() {
             Promise.all([
                 fetch("/api/playlist/clear", { method: "POST" }),
@@ -187,6 +277,9 @@
     </script>
 </head>
 <body>
+<!-- 로그인/사용자 정보 표시 영역 -->
+<div id="authSection"></div>
+
 <h2>YouTube 링크 입력</h2>
 <input type="text" id="youtubeLink" placeholder="YouTube 링크 입력">
 <button onclick="sendYouTubeLink()">전송</button>
