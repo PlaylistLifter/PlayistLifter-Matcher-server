@@ -6,8 +6,11 @@ import PlayList.Matcher.repository.PlaylistRepository;
 import PlayList.Matcher.service.SpotifyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import se.michaelthelin.spotify.model_objects.specification.User;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RequestMapping("/spotify")
 @RestController
@@ -65,6 +68,19 @@ public class SpotifyController {
 
         String userId = spotifyService.getCurrentUserId();
         return spotifyService.createPlaylist(userId, title);
+    }
+
+    @GetMapping("/me")
+    public Map<String, Object> getCurrentUserProfile(){
+        User user = spotifyService.getCurrnetUserProfile();
+
+        // 원하는 형태로 JSON 응답을 생성
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", user.getId());
+        response.put("displayName", user.getDisplayName());
+        response.put("images", user.getImages());
+        response.put("email", user.getEmail());
+        return response;
     }
 
 }

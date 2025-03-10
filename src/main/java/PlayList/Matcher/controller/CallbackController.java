@@ -2,13 +2,14 @@ package PlayList.Matcher.controller;
 
 import PlayList.Matcher.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.logging.Logger;
 
-@RestController
+@Controller
 public class CallbackController {
 
     @Autowired
@@ -22,8 +23,7 @@ public class CallbackController {
 
         log.info("[CallbackController] Access token stored: " + accessToken);
 
-        return "Received Access Token";
-
+        return "redirect:/";
     }
 
 }
