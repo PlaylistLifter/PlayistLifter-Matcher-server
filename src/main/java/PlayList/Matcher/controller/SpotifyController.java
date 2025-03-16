@@ -5,6 +5,7 @@ import PlayList.Matcher.model.YoutubePlaylist;
 import PlayList.Matcher.repository.PlaylistRepository;
 import PlayList.Matcher.service.SpotifyService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import se.michaelthelin.spotify.model_objects.specification.User;
 
@@ -25,53 +26,58 @@ public class SpotifyController {
         this.spotifyService = spotifyService;
     }
 
-    //http://localhost:8080/spotify/search?keyword=aespa
+    // http://localhost:8080/spotify/search?keyword=aespa
     @GetMapping("/search")
-    public List<SearchResponseDto> searchTracks(@RequestParam String keyword) {
-        return spotifyService.searchTracks(keyword);
+    public ResponseEntity<List<SearchResponseDto>> searchTracks(@RequestParam String keyword) {
+        List<SearchResponseDto> results = spotifyService.searchTracks(keyword);
+        return ResponseEntity.ok(results);
     }
 
-    //http://localhost:8080/spotify/match?artist=aespa&title=supernova
+    // http://localhost:8080/spotify/match?artist=aespa&title=supernova
     @GetMapping("/match")
-    public SearchResponseDto searchBestMatchTrack(
+    public ResponseEntity<SearchResponseDto> searchBestMatchTrack(
             @RequestParam String artist,
             @RequestParam String title) {
-        return spotifyService.searchBestMatchTrack(artist, title);
+        SearchResponseDto result = spotifyService.searchBestMatchTrack(artist, title);
+        return ResponseEntity.ok(result);
     }
 
-    //http://localhost:8080/spotify/create-playlist?name=MyPlaylist
+    // http://localhost:8080/spotify/create-playlist?name=MyPlaylist
     @GetMapping("/create-playlist")
-    public String createPlaylist(@RequestParam String name) {
+    public ResponseEntity<String> createPlaylist(@RequestParam String name) {
         String userId = spotifyService.getCurrentUserId(); // 현재 로그인한 사용자 ID 가져오기
-        return spotifyService.createPlaylist(userId, name);
+        String playlistId = spotifyService.createPlaylist(userId, name);
+        return ResponseEntity.ok(playlistId);
     }
 
     // http://localhost:8080/spotify/user-id
     @GetMapping("/user-id")
-    public String getUserId() {
-        return spotifyService.getCurrentUserId();
-    }
-
-    //http://localhost:8080/spotify/match-all
-    @GetMapping("/match-all")
-    public List<SearchResponseDto> matchAllSongs(){
-        return spotifyService.searchBestMatchForAllSongs();
-    }
-
-    //http://localhost:8080/spotify/create-playlist2
-    @GetMapping("/create-playlist2")
-    public String createPlaylist2(){
-        List<YoutubePlaylist> youtubePlaylists =playlistRepository.findAll();
-
-        YoutubePlaylist latest= youtubePlaylists.get(youtubePlaylists.size()-1);
-        String title= latest.getTitle();
-
+    public ResponseEntity<String> getUserId() {
         String userId = spotifyService.getCurrentUserId();
-        return spotifyService.createPlaylist(userId, title);
+        return ResponseEntity.ok(userId);
     }
 
+    // http://localhost:8080/spotify/match-all
+    @GetMapping("/match-all")
+    public ResponseEntity<List<SearchResponseDto>> matchAllSongs(){
+        List<SearchResponseDto> results = spotifyService.searchBestMatchForAllSongs();
+        return ResponseEntity.ok(results);
+    }
+
+    // http://localhost:8080/spotify/create-playlist2
+    @GetMapping("/create-playlist2")
+    public ResponseEntity<String> createPlaylist2(){
+        List<YoutubePlaylist> youtubePlaylists = playlistRepository.findAll();
+        YoutubePlaylist latest = youtubePlaylists.get(youtubePlaylists.size()-1);
+        String title = latest.getTitle();
+        String userId = spotifyService.getCurrentUserId();
+        String playlistId = spotifyService.createPlaylist(userId, title);
+        return ResponseEntity.ok(playlistId);
+    }
+
+    // http://localhost:8080/spotify/me
     @GetMapping("/me")
-    public Map<String, Object> getCurrentUserProfile(){
+    public ResponseEntity<Map<String, Object>> getCurrentUserProfile(){
         User user = spotifyService.getCurrnetUserProfile();
 
         // 원하는 형태로 JSON 응답을 생성
@@ -80,7 +86,6 @@ public class SpotifyController {
         response.put("displayName", user.getDisplayName());
         response.put("images", user.getImages());
         response.put("email", user.getEmail());
-        return response;
+        return ResponseEntity.ok(response);
     }
-
 }
