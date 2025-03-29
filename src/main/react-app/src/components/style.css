@@ -1,0 +1,457 @@
+body {
+  background-color: black;
+  font-family: "Arial", sans-serif; /* 기본 폰트 설정 */
+  font-size: 16px;
+  color: #333;
+}
+
+.main-logo{
+  position: absolute;
+  top: 10px;
+  left: 20px;
+}
+
+.search-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sub-logo {
+  width: 550px;
+  margin-bottom: 15px;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.search-box {
+  width: 500px;
+  padding: 12px 20px;
+  border: 2px solid #1DB954;
+  border-radius: 30px;
+  font-size: 16px;
+  background-color: #0d1117;
+  color: #c9d1d9;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.search-box:focus {
+  border-color: #1ed760;
+  outline: none;
+  box-shadow: 0 0 6px #1db95490;
+}
+
+.search-button {
+  padding: 12px 24px;
+  background-color: #1DB954;
+  color: black;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.search-button:hover {
+  background-color: #1ed760;
+  transform: scale(1.05);
+}
+
+
+
+/* 스피너 감싸는 컨테이너 */
+.spinner-container {
+  position: fixed; /* 화면 전체 기준 */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* 정확한 중앙 정렬 */
+  display: flex;
+  flex-direction: column; /* 텍스트와 스피너를 세로로 정렬 */
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* 스피너 자체 스타일 */
+.custom-spinner>span {
+  color: #ffffff; /* 스피너 색상 */
+  width: 10px !important;
+  height: 50px !important;
+}
+
+/* 로딩 텍스트 */
+.loading-txt {
+  color: white;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+/* 전체 레이아웃 */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* 로딩 화면 */
+.loading-screen {
+  width: 100%;
+  height: 100vh;
+  background-color: black; /* 배경색 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 결과 화면 (전체) */
+.result-screen {
+  width: 100%;
+  min-height: 100vh;
+  background-color: black;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 170px; /* ✅ 콘텐츠 전체를 아래로 내림 */
+  box-sizing: border-box;
+}
+
+/* 🎵 노래 목록을 감싸는 가로 박스 */
+.song-container {
+  width: 80%; /* 전체 화면의 80% 너비 */
+  max-width: 900px; /* 최대 너비 제한 */
+  height: 250px; /* 높이 설정 (노래 카드가 보이는 영역) */
+  background-color: #222;
+  padding: 15px;
+  border-radius: 10px;
+  overflow-x: auto; /* 가로 스크롤 활성화 */
+  white-space: nowrap; /* 줄바꿈 방지 */
+  scroll-snap-type: x mandatory; /* 부드러운 스크롤 */
+  border: 1px solid #444; /* 박스 테두리 */
+  display: flex;
+  align-items: center;
+  margin: 0 auto;
+}
+
+/* 가로 스크롤 스타일 */
+.song-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.song-container::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 10px;
+}
+
+.song-container::-webkit-scrollbar-track {
+  background: #222;
+}
+
+/* 노래 목록 (가로 정렬) */
+.song-list {
+  display: flex;
+  gap: 15px; /* 카드 간 간격 */
+}
+
+/* 🎵 노래 카드 스타일 */
+.song-card {
+  position: relative; /* 체크박스 위치를 카드 내부로 제한 */
+  background-color: #333;
+  color: white;
+  border-radius: 10px;
+  padding: 15px;
+  width: 200px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease-in-out;
+  flex: 0 0 auto; /* 카드 크기 고정 */
+  scroll-snap-align: center; /* 스크롤 시 카드 중앙 정렬 */
+}
+
+.song-card:hover {
+  transform: scale(1.05);
+}
+
+/* 노래 제목 */
+.song-title {
+  font-size: 18px;
+  font-weight: bold;
+  word-wrap: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+/* 아티스트 이름 */
+.song-artist {
+  font-size: 14px;
+  color: #bbb;
+  margin-bottom: 10px;
+  word-wrap: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+/* 카드 내부 버튼 스타일 */
+.song-card button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.song-card button:hover {
+  background-color: #0056b3;
+}
+
+/* 뒤로 가기 버튼 */
+
+
+/* 노래 체크박스 */
+.song-checkbox {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  transform: scale(1.2);
+}
+
+/* 🎵 하단 버튼들을 가로 한 줄 정렬 */
+.button-row {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+/* 모두 체크 버튼 */
+.select-all-button {
+  margin-bottom: 10px;
+  padding: 10px 15px;
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.select-all-button:hover {
+  background-color: #138496;
+}
+
+.login-button {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  padding: 8px 16px;
+  font-size: 14px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.login-button:hover {
+  background-color: #0056b3;
+}
+.logout-button, .change-account-button {
+  padding: 6px 12px;
+  font-size: 12px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 8px;
+  margin-right: 5px;
+}
+.logout-button:hover, .change-account-button:hover {
+  background-color: #c82333;
+}
+.user-info {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  background-color: #eee;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+
+.match-success {
+  color: green;
+  font-size: 14px;
+}
+
+.match-fail {
+  color: red;
+  font-size: 14px;
+}
+
+.match-details {
+  font-size: 13px;
+  color: #444;
+}
+
+.match-item {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.match-list {
+  list-style: none;
+  padding: 0;
+}
+
+.match-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.create-playlist-button {
+  margin-top: 20px;
+  padding: 10px 16px;
+  font-size: 20px;
+  background-color: #1db954;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.create-playlist-button:hover {
+  background-color: #1ed760;
+}
+
+/* 공통 버튼 스타일 - save, back, clear 전부 동일한 스타일 사용 */
+.button-row button {
+  padding: 12px 20px;
+  font-size: 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  min-width: 150px;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+/* 버튼 별 색상만 따로 지정 */
+.save-button {
+  background-color: #28a745;
+  color: white;
+}
+.save-button:hover {
+  background-color: #218838;
+}
+
+.match-button {
+  background-color: #20c997;
+  color: white;
+}
+.match-button:hover {
+  background-color: #17a589;
+}
+
+.clear-button {
+  background-color: #6c757d;
+  color: white;
+}
+.clear-button:hover {
+  background-color: #5a6268;
+}
+
+.back-button {
+  background-color: #e63946;
+  color: white;
+}
+.back-button:hover {
+  background-color: #c82333;
+}
+
+/* 버튼들을 한 줄에 정렬하고 가운데 정렬 */
+.button-row {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+/* ⬅️ 전체 결과 레이아웃 2단 분할 */
+.result-layout {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  gap: 40px;
+  padding: 30px;
+  box-sizing: border-box;
+}
+
+/* 왼쪽 패널 */
+.left-panel {
+  flex: 1;
+  max-width: 50%;
+}
+
+/* 오른쪽 패널 */
+.right-panel {
+  flex: 1;
+  max-width: 50%;
+}
+
+/* 오른쪽 스크롤 박스 */
+.match-scroll-box {
+  max-height: 400px;
+  overflow-y: auto;
+  background-color: #111;
+  border: 1px solid #444;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.match-scroll-box::-webkit-scrollbar {
+  width: 8px;
+}
+
+.match-scroll-box::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 10px;
+}
+
+.match-scroll-box::-webkit-scrollbar-track {
+  background: #222;
+}
+
+/* 매칭 결과 내부 항목 스타일 */
+.match-results .match-item {
+  padding: 10px;
+  border-bottom: 1px solid #444;
+}
+
+.match-results .match-info {
+  display: flex;
+  flex-direction: column;
+  color: #eee;
+}
