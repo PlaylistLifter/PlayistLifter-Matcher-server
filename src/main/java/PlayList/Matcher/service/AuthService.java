@@ -86,10 +86,13 @@ public class AuthService {
         return spotifyAccessToken;
     }
     public String getAccessToken() {
-//        if (spotifyAccessToken == null || System.currentTimeMillis() > spotifyAccessExpires) {
-//            throw new RuntimeException("Spotify access token expired. Please re-authenticate.");
-//        }
+        if (spotifyAccessToken == null) {
+            throw new RuntimeException("No access token available. Please log in.");
+        }
         if(isAccessTokenExpired()){
+            if (spotifyRefreshToken == null) {
+                throw new RuntimeException("No refresh token available. Please re-authenticate.");
+            }
             log.info("access token 만료. token을 refresh 합니다");
             return refreshAccessToken();
         }
@@ -102,6 +105,7 @@ public class AuthService {
     }
 
     public void logout() {
+        log.info("access token, refresh token 삭제");
         this.spotifyAccessToken = null;
         this.spotifyRefreshToken = null;
         this.spotifyAccessExpires = 0L;

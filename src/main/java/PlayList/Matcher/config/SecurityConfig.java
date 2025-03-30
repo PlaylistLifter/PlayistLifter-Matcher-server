@@ -10,10 +10,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(csrf->csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll() // 모든 요청 허용
                 )
-                .csrf(csrf->csrf.disable())// CSRF 비활성화
                 .formLogin(formLogin->formLogin.disable()); // 기본 로그인 페이지 비활성화
 
         return http.build();

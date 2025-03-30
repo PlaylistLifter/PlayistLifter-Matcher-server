@@ -1,11 +1,16 @@
 package PlayList.Matcher.controller;
 
 import PlayList.Matcher.service.AuthService;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
+@Slf4j
+@RestController // ✅ @RestController로 변경
+@RequestMapping("/api") // ✅ 명확한 경로 추가
+@CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
 public class LogoutController {
     private final AuthService authService;
 
@@ -13,12 +18,34 @@ public class LogoutController {
         this.authService = authService;
     }
 
-    @GetMapping("/logout")
-    public String logout(@RequestParam(required = false) String redirect) {
+//    @GetMapping("/logout")
+//    public String logout(@RequestParam(required = false) String redirect) {
+//        authService.logout();
+//        if ("login".equals(redirect)) {
+//            return "redirect:/login";
+//        }
+//        return "redirect:/index.html";
+//    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(){
+        log.info("로그아웃 수신");
         authService.logout();
-        if ("login".equals(redirect)) {
-            return "redirect:/login";
-        }
-        return "redirect:/index.html";
+
+        return ResponseEntity.ok("로그아웃 완료");
+        // String redirectUrl=(redirect!=null&&redirect.equals("login"))?"/login":"/";
+//        String logoutUrl = "https://www.spotify.com/logout/";
+//        return ResponseEntity.status(302)
+//                .header(HttpHeaders.LOCATION, logoutUrl)
+//                .build();
     }
+
+//    @PostMapping("/change-account")
+//    public ResponseEntity<String> changeAccount(){
+//        log.info("계정변경 수신");
+//
+//        authService.logout();
+//
+//        return ResponseEntity.ok("/login");
+//    }
 }
