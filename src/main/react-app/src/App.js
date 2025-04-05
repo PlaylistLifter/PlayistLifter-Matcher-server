@@ -18,6 +18,49 @@ function MainApp() {
   const [isSaved, setIsSaved] = useState(false);
   const [playlistTitle, setPlaylistTitle] = useState("");
 
+      const handleLogout = async () => {
+        try {
+          // 1. 서버에 저장된 토큰 제거
+          await fetch('/api/logout');
+
+          // 2. Spotify 로그아웃 페이지 잠깐 열고 닫기
+          const popup = window.open(
+            'https://accounts.spotify.com/logout',
+            '_blank'
+//            'width=1,height=1,left=-1000,top=-1000'
+          );
+
+          setTimeout(() => {
+            if (popup) popup.close();
+            // 3. 홈으로 리디렉션
+            window.location.href = '/';
+          }, 1000);
+        } catch (error) {
+          console.error("로그아웃 실패:", error);
+        }
+      };
+
+      const handleChangeAccount = async () => {
+        try {
+          // 1. 내부 토큰 초기화 요청 (백엔드에 요청)
+          await fetch('/api/change-account');
+
+          // 2. Spotify 로그아웃 새 창으로 열기
+          const popup = window.open(
+            'https://accounts.spotify.com/logout',
+            '_blank'
+//            'width=1,height=1,left=-1000,top=-1000'
+          );
+
+          setTimeout(() => {
+            if (popup) popup.close();
+            // 3. 로그인 페이지로 이동
+            window.location.href = "http://localhost:8080/login";
+          }, 1000);
+        } catch (error) {
+          console.error("계정 변경 실패:", error);
+        }
+      };
   // 0. 로그인 상태 확인
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -118,6 +161,7 @@ function MainApp() {
     }
   };
 
+
   const renderAuthSection = () => {
     if (!userInfo) {
       return (
@@ -131,8 +175,8 @@ function MainApp() {
       <div className="user-info">
         <p>안녕하세요, <strong>{userInfo.displayName || userInfo.id}</strong>님!</p>
         <p><small>이메일: {userInfo.email || '정보 없음'}</small></p>
-        <button className="logout-button" onClick={() => window.location.href = "/logout"}>로그아웃</button>
-        <button className="change-account-button" onClick={() => window.location.href = "/logout?redirect=login"}>
+        <button className="logout-button" onClick={handleLogout}>로그아웃</button>
+        <button className="change-account-button" onClick={handleChangeAccount}>
           계정 변경하기
         </button>
       </div>
