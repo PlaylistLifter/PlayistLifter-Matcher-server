@@ -5,7 +5,7 @@ import React from "react";
 // 이미지 목록 (여기에 원하는 이미지 URL 추가)
 const astronaut2="/astronaut2.png";
 
-const imageList = [astronaut2,astronaut2,astronaut2];
+const imageList = [astronaut2,astronaut2,astronaut2,astronaut2,astronaut2];
 
 function FloatingImages() {
     const [images, setImages] = useState([]);

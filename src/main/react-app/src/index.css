@@ -1,3 +1,13 @@
+@font-face {
+  font-family: "SpaceGrotesk-Bold" ;
+  src: url("./fonts/SpaceGrotesk-Bold.ttf");
+}
+
+@font-face {
+  font-family: "SpaceGrotesk-Medium" ;
+  src: url("./fonts/SpaceGrotesk-Medium.ttf");
+}
+
 body {
   margin: 0;
   padding: 0;

@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import FloatingImage from "./components/FloatingImage";
-import InputBox from "./components/InputBox";
 import "./components/style.css";
-import Button from "./components/Button";
 import { ScaleLoader } from "react-spinners";
 import axios from "axios";
 import Callback from "./pages/Callback";
@@ -17,51 +15,35 @@ function MainApp() {
   const [matchedTracks, setMatchedTracks] = useState([]);
   const [isSaved, setIsSaved] = useState(false);
   const [playlistTitle, setPlaylistTitle] = useState("");
+  const [isMatched, setIsMatched] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+//0.로그인 로그아웃
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/logout');
+      const popup = window.open('https://accounts.spotify.com/logout', '_blank');
+      setTimeout(() => {
+        if (popup) popup.close();
+        window.location.href = '/';
+      }, 1000);
+    } catch (error) {
+      console.error("로그아웃 실패:", error);
+    }
+  };
 
-      const handleLogout = async () => {
-        try {
-          // 1. 서버에 저장된 토큰 제거
-          await fetch('/api/logout');
+  const handleChangeAccount = async () => {
+    try {
+      await fetch('/api/change-account');
+      const popup = window.open('https://accounts.spotify.com/logout', '_blank');
+      setTimeout(() => {
+        if (popup) popup.close();
+        window.location.href = "http://localhost:8080/login";
+      }, 1000);
+    } catch (error) {
+      console.error("계정 변경 실패:", error);
+    }
+  };
 
-          // 2. Spotify 로그아웃 페이지 잠깐 열고 닫기
-          const popup = window.open(
-            'https://accounts.spotify.com/logout',
-            '_blank'
-//            'width=1,height=1,left=-1000,top=-1000'
-          );
-
-          setTimeout(() => {
-            if (popup) popup.close();
-            // 3. 홈으로 리디렉션
-            window.location.href = '/';
-          }, 1000);
-        } catch (error) {
-          console.error("로그아웃 실패:", error);
-        }
-      };
-
-      const handleChangeAccount = async () => {
-        try {
-          // 1. 내부 토큰 초기화 요청 (백엔드에 요청)
-          await fetch('/api/change-account');
-
-          // 2. Spotify 로그아웃 새 창으로 열기
-          const popup = window.open(
-            'https://accounts.spotify.com/logout',
-            '_blank'
-//            'width=1,height=1,left=-1000,top=-1000'
-          );
-
-          setTimeout(() => {
-            if (popup) popup.close();
-            // 3. 로그인 페이지로 이동
-            window.location.href = "http://localhost:8080/login";
-          }, 1000);
-        } catch (error) {
-          console.error("계정 변경 실패:", error);
-        }
-      };
-  // 0. 로그인 상태 확인
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
@@ -74,19 +56,41 @@ function MainApp() {
     checkLoginStatus();
   }, []);
 
-  // 1. 유튜브 링크 전송 및 노래 추출
+  const renderAuthSection = () => {
+    if (!userInfo) {
+      return (
+          <button className="login-button" onClick={() => window.location.href = "http://localhost:8080/login"}>
+            로그인
+          </button>
+      );
+    }
+    return (
+        <div className="user-info">
+          <p>안녕하세요, <strong>{userInfo.displayName || userInfo.id}</strong>님!</p>
+          <p><small>이메일: {userInfo.email || '정보 없음'}</small></p>
+          <button className="logout-button" onClick={handleLogout}>로그아웃</button>
+          <button className="change-account-button" onClick={handleChangeAccount}>계정 변경하기</button>
+        </div>
+    );
+  };
+
+//1. 유튜브 링크 전송
   const sendYouTubeLink = async () => {
     if (!youtubeLink) {
       alert("유튜브 링크를 입력하세요!");
       return;
     }
     setScreen("loading");
-
     try {
       const response = await axios.post("/link/send-link", { youtubeUrl: youtubeLink });
       if (response.data.songs) {
-        setSongs(response.data.songs);
-        setSelectedSongs(response.data.songs.map(song => song.id));
+        const songsWithId = response.data.songs.map((song, index) => ({
+          id: song.id ?? `temp-${index}`,
+          title: song.title,
+          artist: song.artist
+        }));
+        setSongs(songsWithId);
+        setSelectedSongs(songsWithId.map(song => String(song.id)));
         setPlaylistTitle(response.data.title);
         setIsSaved(false);
         setScreen("result");
@@ -99,56 +103,61 @@ function MainApp() {
       setScreen("home");
     }
   };
-
+  //2. 노래추출화면 구현
+  //노래 전체선택
   const toggleSelectAll = () => {
-    setSelectedSongs(selectedSongs.length === songs.length ? [] : songs.map(song => song.id));
+    const allSelected = selectedSongs.length === songs.length;
+    setSelectedSongs(allSelected ? [] : songs.map(song => String(song.id)));
   };
 
   const toggleSelection = (id) => {
+    const stringId = String(id);
     setSelectedSongs(prev =>
-      prev.includes(id) ? prev.filter(songId => songId !== id) : [...prev, id]
+        prev.includes(stringId) ? prev.filter(songId => songId !== stringId) : [...prev, stringId]
     );
   };
-
-  const matchSelectedSongs = async () => {
-    if (selectedSongs.length === 0) {
-      alert("최소한 하나의 노래를 선택하세요!");
-      return;
-    }
-
-    try {
-      await axios.get("/spotify/match-all");
-      const matchedResponse = await axios.get("/api/matched/tracks");
-      setMatchedTracks(matchedResponse.data);
-      alert("✅ Spotify 매칭 완료!");
-    } catch (error) {
-      console.error("매칭 실패:", error);
-      alert("❌ Spotify 매칭 중 오류가 발생했습니다.");
-    }
-
-    setSelectedSongs([]);
-  };
-
+  //선택된 노래 저장
   const saveSelectedSongs = async () => {
-    if (selectedSongs.length === 0) {
+    const selected = songs.filter(song => selectedSongs.includes(String(song.id)));
+    if (selected.length === 0) {
       alert("저장할 노래가 없습니다. 최소 한 곡 이상 선택해주세요!");
       return;
     }
 
-    const selected = songs.filter(song => selectedSongs.includes(song.id));
-    const payload = { title: playlistTitle, songs: selected };
-
+    const payload = { title
+          : playlistTitle, songs: selected };
     try {
-      const response = await axios.post("/api/playlist/add", payload);
-      console.log("플레이리스트 저장 완료:", response.data);
-      alert("✅ 선택한 노래들을 서버에 저장했습니다!");
+      setIsProcessing(true);
+      await axios.post("/api/playlist/add", payload);
       setIsSaved(true);
+
+      await axios.get("/spotify/match-all");
+      const matched = await axios.get("/api/matched/tracks");
+
+      const completeMatchedList = selected.map((song) => {
+        const foundMatch = matched.data.find(m => m.originalTitle === song.title && m.originalArtist === song.artist);
+        return foundMatch || {
+          originalTitle: song.title,
+          originalArtist: song.artist,
+          spotifyTrackId: "",
+          matchedArtist: "",
+          matchedTitle: ""
+        };
+      });
+
+      setMatchedTracks(completeMatchedList);
+      setIsMatched(true);
+      setSongs([]);
+      setSelectedSongs([]);
     } catch (error) {
-      console.error("플레이리스트 저장 실패:", error);
-      alert("❌ 서버 저장 중 오류 발생");
+      console.error("저장 또는 매칭 실패:", error);
+      alert("❌ 저장 또는 매칭 중 오류가 발생했습니다.");
+    } finally {
+      setIsProcessing(false);
     }
   };
-
+  //3. 매칭파트
+  //스포티파이 플레이리스트 생성
   const createSpotifyPlaylist = async () => {
     try {
       const response = await axios.get("/spotify/create-playlist2");
@@ -161,37 +170,16 @@ function MainApp() {
     }
   };
 
-
-  const renderAuthSection = () => {
-    if (!userInfo) {
-      return (
-        <button className="login-button" onClick={() => window.location.href = "http://localhost:8080/login"}>
-          로그인
-        </button>
-      );
-    }
-
-    return (
-      <div className="user-info">
-        <p>안녕하세요, <strong>{userInfo.displayName || userInfo.id}</strong>님!</p>
-        <p><small>이메일: {userInfo.email || '정보 없음'}</small></p>
-        <button className="logout-button" onClick={handleLogout}>로그아웃</button>
-        <button className="change-account-button" onClick={handleChangeAccount}>
-          계정 변경하기
-        </button>
-      </div>
-    );
-  };
-
+  //4. 레포지토리 초기화
   const clearRepositories = async () => {
     try {
       await axios.post("/api/playlist/clear");
       await axios.post("/api/matched/clear");
-      alert("🧹 레포지터리를 초기화했습니다!");
       setSongs([]);
       setSelectedSongs([]);
       setMatchedTracks([]);
       setIsSaved(false);
+      setIsMatched(false);
       setScreen("home");
     } catch (error) {
       console.error("초기화 실패:", error);
@@ -199,133 +187,137 @@ function MainApp() {
     }
   };
 
-  return (
-    <div className="app-container">
-      <div className="auth-section">{renderAuthSection()}</div>
-
-      {screen === "home" && (
-        <>
-          <div className="search-wrapper">
-            <img className="sub-logo" src="/Logo2.png" alt="서브로고" />
-            <div className="search-container">
-              <InputBox
-                value={youtubeLink}
-                onChange={(e) => setYoutubeLink(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && sendYouTubeLink()}
-              />
-              <Button text="GO" onClick={sendYouTubeLink} />
+  return (//렌더링
+      <div className="app-container">
+        <FloatingImage/>
+        {isProcessing ? (//프로세싱중이라면 로딩화면
+            <div className="loading-screen">
+              <p className="loading-txt">Matching...</p>
+              <ScaleLoader className="custom-spinner" color="#ffffff" />
             </div>
-          </div>
-          <img className="main-logo" src="/Logo.png" alt="메인로고" />
-          <FloatingImage />
-        </>
-      )}
+        ) : (//프로세싱중이 아니라면 렌더링 화면
+            <>
+              <div className="auth-section">{renderAuthSection()}</div>
+              {screen === "home" && (//screen이 홈페이지로 셋 됐을때
+                  <>
+                    <div className="search-wrapper">
+                      <text className="logo">PLAYLIST_LIFTER_</text>
 
-      {screen === "loading" && (
-        <div className="loading-screen">
-          <p className="loading-txt">Extracting...</p>
-          <ScaleLoader className="custom-spinner" color="#ffffff" />
-        </div>
-      )}
-
-      {screen === "result" && (
-        <div className="result-screen">
-          <div className="result-layout">
-            <div className="left-panel">
-              <h2>🎵 추출된 노래 목록</h2>
-              <button className="select-all-button" onClick={toggleSelectAll}>
-                {selectedSongs.length === songs.length ? "모두 해제" : "모두 체크"}
-              </button>
-
-              <div className="song-container">
-                <div className="song-list">
-                  {songs.length > 0 ? (
-                    songs.map((song) => (
-                      <div key={song.id} className="song-card">
+                      <div className="search-container">
                         <input
-                          type="checkbox"
-                          className="song-checkbox"
-                          checked={selectedSongs.includes(song.id)}
-                          onChange={() => toggleSelection(song.id)}
+                            type="text"
+                            placeholder="유튜브 URL을 입력하세요"
+                            className="search-box"
+                            value={youtubeLink}
+                            onChange={(e) => setYoutubeLink(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                sendYouTubeLink();
+                              }}}
                         />
-                        <p className="song-title">{song.title}</p>
-                        <p className="song-artist">🎤 {song.artist}</p>
+                        <button className="search-button" onClick={sendYouTubeLink}>Go</button>
                       </div>
-                    ))
-                  ) : (
-                    <p>노래 목록이 없습니다.</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="button-row">
-                {!isSaved && (
-                  <button className="save-button" onClick={saveSelectedSongs}>
-                    💾 저장
-                  </button>
-                )}
-                {isSaved && matchedTracks.length === 0 && (
-                  <button className="match-button" onClick={matchSelectedSongs}>
-                    ✅ 매칭
-                  </button>
-                )}
-                <button className="clear-button" onClick={clearRepositories}>
-                  🧹 초기화
-                </button>
-                <button className="back-button" onClick={() => setScreen("home")}>
-                  🏠 홈으로
-                </button>
-              </div>
-            </div>
-
-            <div className="right-panel">
-              {matchedTracks.length > 0 && (
-                <div className="match-results">
-                  <h3>🎯 매칭 결과</h3>
-                  <div className="match-scroll-box">
-                    <ul className="match-list">
-                      {matchedTracks.map((match, idx) => {
-                        const isMatched = match.spotifyTrackId && match.spotifyTrackId.trim() !== "";
-                        return (
-                          <li key={idx} className="match-item">
-                            <div className="match-info">
-                              <strong>{match.originalArtist} - {match.originalTitle}</strong>
-                              <span className={isMatched ? "match-success" : "match-fail"}>
-                                {isMatched ? "✓ 매칭 성공" : "✗ 매칭 실패"}
-                              </span>
-                              {isMatched && (
-                                <span className="match-details">
-                                  Spotify: {match.matchedArtist} - {match.matchedTitle}
-                                </span>
-                              )}
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-
-                  <button className="create-playlist-button" onClick={createSpotifyPlaylist}>
-                    🎧 Spotify 재생목록 만들기
-                  </button>
-                </div>
+                    </div>
+                  </>
               )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+
+              {screen === "loading" && (//screen이 로딩화면일때
+                  <div className="loading-screen">
+                    <p className="loading-txt">Extracting...</p>
+                    <ScaleLoader className="custom-spinner" color="#ffffff" />
+                  </div>
+              )}
+
+              {screen === "result" && (//screen 결과화면
+                  <div className="result-screen">
+              <span
+                  className="result-screen-logo-button"
+                  onClick={clearRepositories}
+              >PLAYLIST_LIFTER_</span>
+                    <div className="center-panel">
+                      {!isMatched && songs.length > 0 && (
+                          <>
+
+
+                            <div className="song-container-wrapper">
+                              <h2 className="h2">Songs from Youtube</h2>
+                              <div className="song-container">
+                                <div className="song-list">
+                                  {songs.map((song, index) => (
+                                      <div key={song.id || index} className="song-card">
+                                        <input
+                                            type="checkbox"
+                                            className="song-checkbox"
+                                            checked={selectedSongs.includes(String(song.id))}
+                                            onChange={() => toggleSelection(song.id)}
+                                        />
+                                        <p className="song-title">{song.title}</p>
+                                        <p className="song-artist">🎤 {song.artist}</p>
+                                      </div>
+                                  ))}
+                                </div>
+                              </div>
+                              <button className="select-all-button" onClick={toggleSelectAll}>
+                                {selectedSongs.length === songs.length ? "all ✓" : "all"}
+                              </button>
+                            </div>
+                          </>
+                      )}
+                      <div className="button-row">
+                        {!isSaved && songs.length > 0 && (
+                            <button className="save-button" onClick={saveSelectedSongs}>
+                              Start Matching
+                            </button>
+                        )}
+                      </div>
+                      {matchedTracks.length > 0 && (
+                          <div className="match-results">
+                            <h3 className="h3">Your Song List</h3>
+                            <div className="match-scroll-box">
+                              <ul className="match-list">
+                                {matchedTracks.map((match, idx) => {
+                                  const isMatched = match.spotifyTrackId && match.spotifyTrackId.trim() !== "";
+                                  return (
+                                      <li key={idx} className="match-item">
+                                        <div className="match-info">
+                                          <strong>{match.originalTitle} - {match.originalArtist}</strong>
+                                          <span className={isMatched ? "match-success" : "match-fail"}>
+                                  {isMatched ? "✓ 매칭 성공" : "✗ 매칭 실패"}
+                                </span>
+                                          {isMatched && (
+                                              <span className="match-details">
+                                    Spotify: {match.matchedArtist} - {match.matchedTitle}
+                                  </span>
+                                          )}
+                                        </div>
+                                      </li>
+                                  );
+                                })}
+                              </ul>
+                            </div>
+                            <button className="create-playlist-button" onClick={createSpotifyPlaylist}>
+                              Create Spotify Playlist
+                            </button>
+                          </div>
+                      )}
+                    </div>
+                  </div>
+              )}
+            </>
+        )}
+      </div>
   );
 }
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<MainApp />} />
-        <Route path="/callback" element={<Callback />} />
-      </Routes>
-    </Router>
+      <Router>
+        <Routes>
+          <Route path="/" element={<MainApp />} />
+          <Route path="/callback" element={<Callback />} />
+        </Routes>
+      </Router>
   );
 }
 

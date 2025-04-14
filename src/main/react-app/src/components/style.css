@@ -1,56 +1,71 @@
 body {
   background-color: black;
-  font-family: "Arial", sans-serif; /* 기본 폰트 설정 */
+  font-family: "Arial", sans-serif;
   font-size: 16px;
   color: #333;
 }
 
-.main-logo{
-  position: absolute;
-  top: 10px;
-  left: 20px;
-}
 
 .search-wrapper {
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
+  z-index: 10;
 }
 
-.sub-logo {
-  width: 550px;
-  margin-bottom: 15px;
+.logo {
+  font-size: 70px;
+  color: white;
+  font-family: 'SpaceGrotesk-Bold';
+}
+
+.result-screen-logo-button{
+  position: fixed;
+  font-family: 'SpaceGrotesk-Bold';
+  font-size: 45px;
+  top: 20px;
+  left: 20px;
+  width: 350px;
+  cursor: pointer;
+  z-index: 100;
 }
 
 .search-container {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
   margin-top: 15px;
+  z-index: 10;
 }
 
 .search-box {
+  position: relative;
   width: 500px;
   padding: 12px 20px;
   border: 2px solid #1DB954;
   border-radius: 30px;
   font-size: 16px;
-  background-color: #0d1117;
+  background-color: #111111;
   color: #c9d1d9;
   transition: border-color 0.3s, box-shadow 0.3s;
+  z-index: 10;
 }
 
 .search-box:focus {
+  position: relative;
   border-color: #1ed760;
   outline: none;
   box-shadow: 0 0 6px #1db95490;
+  z-index: 10;
 }
 
 .search-button {
+  position: relative;
   padding: 12px 24px;
   background-color: #1DB954;
   color: black;
@@ -59,65 +74,54 @@ body {
   cursor: pointer;
   font-size: 16px;
   transition: background-color 0.3s, transform 0.2s;
+  z-index: 10;
+  font-family: 'SpaceGrotesk-Medium';
 }
 
 .search-button:hover {
+  position: relative;
   background-color: #1ed760;
   transform: scale(1.05);
+  z-index: 10;
 }
 
-
-
-/* 스피너 감싸는 컨테이너 */
-.spinner-container {
-  position: fixed; /* 화면 전체 기준 */
+.spinner-container,
+.loading-screen {
+  position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%); /* 정확한 중앙 정렬 */
+  transform: translate(-50%, -50%);
   display: flex;
-  flex-direction: column; /* 텍스트와 스피너를 세로로 정렬 */
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 100vw;
   height: 100vh;
+  background-color: black;
 }
 
-/* 스피너 자체 스타일 */
 .custom-spinner>span {
-  color: #ffffff; /* 스피너 색상 */
+  color: #ffffff;
   width: 10px !important;
   height: 50px !important;
 }
 
-/* 로딩 텍스트 */
 .loading-txt {
   color: white;
   font-size: 20px;
   margin-bottom: 10px;
+  font-family: 'SpaceGrotesk-Medium';
 }
 
-/* 전체 레이아웃 */
 .app-container {
   display: flex;
   flex-direction: column;
-  height: 100vh;
   align-items: center;
   justify-content: center;
   text-align: center;
+  min-height: 100vh;
 }
 
-/* 로딩 화면 */
-.loading-screen {
-  width: 100%;
-  height: 100vh;
-  background-color: black; /* 배경색 */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 결과 화면 (전체) */
 .result-screen {
   width: 100%;
   min-height: 100vh;
@@ -126,28 +130,58 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 170px; /* ✅ 콘텐츠 전체를 아래로 내림 */
+  padding-top: 60px;
   box-sizing: border-box;
 }
 
-/* 🎵 노래 목록을 감싸는 가로 박스 */
-.song-container {
-  width: 80%; /* 전체 화면의 80% 너비 */
-  max-width: 900px; /* 최대 너비 제한 */
-  height: 250px; /* 높이 설정 (노래 카드가 보이는 영역) */
-  background-color: #222;
-  padding: 15px;
-  border-radius: 10px;
-  overflow-x: auto; /* 가로 스크롤 활성화 */
-  white-space: nowrap; /* 줄바꿈 방지 */
-  scroll-snap-type: x mandatory; /* 부드러운 스크롤 */
-  border: 1px solid #444; /* 박스 테두리 */
-  display: flex;
-  align-items: center;
+.h2{
+  position: relative;
+  z-index: 20;
+  margin-top: 13vh;
+  font-family: 'SpaceGrotesk-Medium';
+  font-size: 30px;
+}
+
+.h3{
+  position: relative;
+  z-index: 20;
+  margin-top: 10vh;
+  font-family: 'SpaceGrotesk-Medium';
+  font-size: 30px;
+}
+
+.song-container-wrapper {
+  position: relative;
+  width: 90%;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
-/* 가로 스크롤 스타일 */
+
+.song-container {
+  width: 100%;
+  height: 400px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background-color: #222;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #444;
+  box-sizing: border-box;
+  white-space: nowrap; /* 가로 스크롤을 위해 필요 */
+}
+
+
+.song-list {
+  display: grid;
+  grid-auto-flow: column; /* 💡 열 방향으로 흐르게 함 */
+  grid-template-rows: repeat(2, 1fr); /* 두 줄 만들기 */
+  gap: 15px;
+  height: 100%;
+}
+
+
+
 .song-container::-webkit-scrollbar {
   height: 8px;
 }
@@ -161,15 +195,9 @@ body {
   background: #222;
 }
 
-/* 노래 목록 (가로 정렬) */
-.song-list {
-  display: flex;
-  gap: 15px; /* 카드 간 간격 */
-}
 
-/* 🎵 노래 카드 스타일 */
 .song-card {
-  position: relative; /* 체크박스 위치를 카드 내부로 제한 */
+  position: relative;
   background-color: #333;
   color: white;
   border-radius: 10px;
@@ -178,15 +206,14 @@ body {
   text-align: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s ease-in-out;
-  flex: 0 0 auto; /* 카드 크기 고정 */
-  scroll-snap-align: center; /* 스크롤 시 카드 중앙 정렬 */
+  flex: 0 0 auto;
+  scroll-snap-align: center;
 }
 
 .song-card:hover {
   transform: scale(1.05);
 }
 
-/* 노래 제목 */
 .song-title {
   font-size: 18px;
   font-weight: bold;
@@ -195,7 +222,6 @@ body {
   overflow-wrap: break-word;
 }
 
-/* 아티스트 이름 */
 .song-artist {
   font-size: 14px;
   color: #bbb;
@@ -205,25 +231,6 @@ body {
   overflow-wrap: break-word;
 }
 
-/* 카드 내부 버튼 스타일 */
-.song-card button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.song-card button:hover {
-  background-color: #0056b3;
-}
-
-/* 뒤로 가기 버튼 */
-
-
-/* 노래 체크박스 */
 .song-checkbox {
   position: absolute;
   top: 10px;
@@ -231,7 +238,6 @@ body {
   transform: scale(1.2);
 }
 
-/* 🎵 하단 버튼들을 가로 한 줄 정렬 */
 .button-row {
   display: flex;
   justify-content: center;
@@ -240,18 +246,21 @@ body {
   flex-wrap: wrap;
 }
 
-/* 모두 체크 버튼 */
 .select-all-button {
-  margin-bottom: 10px;
-  padding: 10px 15px;
-  background-color: #17a2b8;
+  position: absolute;
+  right: 15px;
+  bottom: 15px;
+  z-index: 10;
+  padding: 6px 12px;
+  background-color: #0dcaf0;
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
+  font-size: 14px;
   cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s;
+  font-family: 'SpaceGrotesk-Medium';
 }
+
 
 .select-all-button:hover {
   background-color: #138496;
@@ -270,9 +279,11 @@ body {
   border-radius: 4px;
   cursor: pointer;
 }
+
 .login-button:hover {
   background-color: #0056b3;
 }
+
 .logout-button, .change-account-button {
   padding: 6px 12px;
   font-size: 12px;
@@ -284,9 +295,11 @@ body {
   margin-top: 8px;
   margin-right: 5px;
 }
+
 .logout-button:hover, .change-account-button:hover {
   background-color: #c82333;
 }
+
 .user-info {
   position: fixed;
   top: 10px;
@@ -296,7 +309,6 @@ body {
   padding: 8px;
   border-radius: 4px;
 }
-
 
 .match-success {
   color: green;
@@ -333,18 +345,18 @@ body {
   padding: 10px 16px;
   font-size: 20px;
   background-color: #1db954;
-  color: white;
+  color: #191414;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  font-family: 'SpaceGrotesk-Medium';
 }
 
 .create-playlist-button:hover {
-  background-color: #1ed760;
+  background-color: #218838;
 }
 
-/* 공통 버튼 스타일 - save, back, clear 전부 동일한 스타일 사용 */
 .button-row button {
   padding: 12px 20px;
   font-size: 20px;
@@ -356,71 +368,51 @@ body {
   transition: background-color 0.3s ease;
 }
 
-/* 버튼 별 색상만 따로 지정 */
 .save-button {
-  background-color: #28a745;
-  color: white;
+  background-color: #1db954;
+  color: #191414;
+  z-index: 20;
+  font-family: 'SpaceGrotesk-Medium';
 }
+
 .save-button:hover {
   background-color: #218838;
 }
 
-.match-button {
-  background-color: #20c997;
-  color: white;
-}
-.match-button:hover {
-  background-color: #17a589;
-}
-
-.clear-button {
+/* .floating-home-button {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  padding: 8px 14px;
+  font-size: 14px;
   background-color: #6c757d;
   color: white;
+  border: none;
+  border-radius: 8px;
+  z-index: 999;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease;
 }
-.clear-button:hover {
+
+.floating-home-button:hover {
   background-color: #5a6268;
-}
+} */
 
-.back-button {
-  background-color: #e63946;
-  color: white;
-}
-.back-button:hover {
-  background-color: #c82333;
-}
 
-/* 버튼들을 한 줄에 정렬하고 가운데 정렬 */
-.button-row {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-/* ⬅️ 전체 결과 레이아웃 2단 분할 */
-.result-layout {
-  display: flex;
-  justify-content: space-between;
+/* 중앙 정렬용 패널 */
+.center-panel {
   width: 100%;
-  gap: 40px;
-  padding: 30px;
+  max-width: 1000px;
+  padding: 20px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-/* 왼쪽 패널 */
-.left-panel {
-  flex: 1;
-  max-width: 50%;
-}
-
-/* 오른쪽 패널 */
-.right-panel {
-  flex: 1;
-  max-width: 50%;
-}
-
-/* 오른쪽 스크롤 박스 */
+/* 매칭 결과 영역 */
 .match-scroll-box {
   max-height: 400px;
   overflow-y: auto;
@@ -429,6 +421,8 @@ body {
   padding: 10px 15px;
   border-radius: 8px;
   margin-bottom: 20px;
+  width: 100%;
+  max-width: 800px;
 }
 
 .match-scroll-box::-webkit-scrollbar {
@@ -444,14 +438,15 @@ body {
   background: #222;
 }
 
-/* 매칭 결과 내부 항목 스타일 */
-.match-results .match-item {
-  padding: 10px;
-  border-bottom: 1px solid #444;
-}
-
-.match-results .match-info {
+.match-results {
+  position: relative;
+  z-index: 20;
   display: flex;
   flex-direction: column;
-  color: #eee;
+  align-items: center;
+  text-align: center;
+}
+
+button {
+  cursor: pointer;
 }
