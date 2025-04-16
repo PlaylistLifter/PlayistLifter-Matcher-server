@@ -17,7 +17,14 @@ function MainApp() {
   const [playlistTitle, setPlaylistTitle] = useState("");
   const [isMatched, setIsMatched] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-//0.로그인 로그아웃
+  const [isPopupOpen,setIsPopupOpen]=useState(false);
+
+  //0.로그인 로그아웃
+
+  const loginlogout_popup =()=>{
+    setIsPopupOpen(prev=>!prev);
+  }
+
   const handleLogout = async () => {
     try {
       await fetch('/api/logout');
@@ -56,23 +63,20 @@ function MainApp() {
     checkLoginStatus();
   }, []);
 
-  const renderAuthSection = () => {
-    if (!userInfo) {
-      return (
-          <button className="login-button" onClick={() => window.location.href = "http://localhost:8080/login"}>
-            로그인
-          </button>
-      );
-    }
-    return (
-        <div className="user-info">
-          <p>안녕하세요, <strong>{userInfo.displayName || userInfo.id}</strong>님!</p>
-          <p><small>이메일: {userInfo.email || '정보 없음'}</small></p>
-          <button className="logout-button" onClick={handleLogout}>로그아웃</button>
-          <button className="change-account-button" onClick={handleChangeAccount}>계정 변경하기</button>
-        </div>
-    );
-  };
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      const popupElement = document.querySelector(".user-greeting-wrapper");
+      if (popupElement && !popupElement.contains(e.target)) {
+        setIsPopupOpen(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, []);
+
 
 //1. 유튜브 링크 전송
   const sendYouTubeLink = async () => {
@@ -189,6 +193,30 @@ function MainApp() {
 
   return (//렌더링
       <div className="app-container">
+        <div className="user-greeting-wrapper">
+          {!userInfo ? (
+              <button className="login-button" onClick={() => window.location.href = "http://localhost:8080/login"}>
+                Sign in
+              </button>
+          ) : (
+              <>
+                <p className="user-greeting" onClick={loginlogout_popup}>
+                  Hello, <strong>{userInfo.displayName || userInfo.id}</strong>!
+                  {" "}
+                  <span className="arrow">
+                {isPopupOpen?" ▲" : " ▼"}
+              </span>
+                </p>
+                {isPopupOpen && (
+                    <div className="user-popup">
+                      <p><small>Email: {userInfo.email || "NULL"}</small></p>
+                      <button className="logout-button" onClick={handleLogout}>Sign out</button>
+                      <button className="change-account-button" onClick={handleChangeAccount}>Switch Account</button>
+                    </div>
+                )}
+              </>
+          )}
+        </div>
         <FloatingImage/>
         {isProcessing ? (//프로세싱중이라면 로딩화면
             <div className="loading-screen">
@@ -197,7 +225,6 @@ function MainApp() {
             </div>
         ) : (//프로세싱중이 아니라면 렌더링 화면
             <>
-              <div className="auth-section">{renderAuthSection()}</div>
               {screen === "home" && (//screen이 홈페이지로 셋 됐을때
                   <>
                     <div className="search-wrapper">
