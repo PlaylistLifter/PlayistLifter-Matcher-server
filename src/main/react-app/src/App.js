@@ -179,6 +179,7 @@ function MainApp() {
     try {
       await axios.post("/api/playlist/clear");
       await axios.post("/api/matched/clear");
+      setYoutubeLink("");
       setSongs([]);
       setSelectedSongs([]);
       setMatchedTracks([]);
