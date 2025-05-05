@@ -20,7 +20,6 @@ body {
   font-family: 'SpaceGrotesk-Medium';
 }
 
-
 .user-popup {
   position: absolute;
   top: 100%;
@@ -36,6 +35,64 @@ body {
 
 .arrow{
   font-size: 10px;
+}
+
+.tutorial-button{
+  position: fixed;
+  left: 20px;
+  bottom: 30px;
+  background-color: black;
+  color: white;
+  border-radius: 50px;
+}
+
+.tutorial-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #111;
+  padding: 30px 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+  z-index: 1001;
+  max-width: 100%;
+  max-height: 80%;
+  overflow-y: auto;
+  text-align: center;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  
+}
+
+.h4{
+  font-size: 150px;
+}
+
+.tutorial-content {
+  background: white;
+  color: black;
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 100%;
+  max-height: 90%;
+  overflow-y: auto;
+  text-align: center;
+}
+
+.tutorial-content img {
+  max-width: 100%;
+  border-radius: 10px;
+  margin-bottom: 10px;
 }
 
 .search-wrapper {
@@ -164,7 +221,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 60px;
+  padding-top: -5vh;
   box-sizing: border-box;
 }
 
@@ -183,18 +240,115 @@ body {
   font-family: 'SpaceGrotesk-Medium';
   font-size: 30px;
 }
+/* 여기서 부터 추출된 노래 */
+.E-song-container-wrapper {
+  position: relative;
+  width: 90%;
+  max-width: 1000px;
+  margin: 60px auto 0 auto;
+}
 
-.song-container-wrapper {
+.E-song-container {
+  width: 100%;
+  max-height: 450px;
+  max-height: 500px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #222;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #444;
+  box-sizing: border-box;
+}
+
+
+.E-song-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+
+.E-song-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.E-song-container::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 10px;
+}
+
+.E-song-container::-webkit-scrollbar-track {
+  background: #222;
+}
+
+.E-song-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background-color: #333;
+  color: white;
+  border-radius: 10px;
+  padding: 15px 20px;
+  width: 96%;
+  height: auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease-in-out;
+  font-family: 'SpaceGrotesk-Medium';
+  justify-content: flex-start;
+  text-align: left;
+}
+
+
+.E-song-card:hover {
+  transform: scale(1.02);
+}
+
+.E-song-card.selected {
+  border: 2px;
+  background-color: #2a2a2a;
+}
+
+
+.E-song-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.E-song-title {
+  margin-bottom: 0px;
+  margin-top: 0px;
+  font-size: 16px;
+  font-weight: normal;
+  word-wrap: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.E-song-artist {
+  font-size: 14px;
+  color: #bbb;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  word-wrap: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+
+/* 여기서 부터 매칭된 노래 */
+.M-song-container-wrapper {
   position: relative;
   width: 90%;
   max-width: 1000px;
   margin: 0 auto;
 }
 
-
-.song-container {
+.M-song-container {
   width: 100%;
-  height: 400px;
+  height: auto;
+  min-height: 310px;
   overflow-x: auto;
   overflow-y: hidden;
   background-color: #222;
@@ -202,63 +356,71 @@ body {
   border-radius: 10px;
   border: 1px solid #444;
   box-sizing: border-box;
-  white-space: nowrap; /* 가로 스크롤을 위해 필요 */
+  white-space: nowrap;
+
 }
 
-
-.song-list {
+.M-song-list {
   display: grid;
-  grid-auto-flow: column; /* 💡 열 방향으로 흐르게 함 */
-  grid-template-rows: repeat(2, 1fr); /* 두 줄 만들기 */
+  grid-auto-flow: column;
+  grid-template-rows: repeat(2, 1fr);
   gap: 15px;
   height: 100%;
 }
 
-
-
-.song-container::-webkit-scrollbar {
+.M-song-container::-webkit-scrollbar {
   height: 8px;
 }
 
-.song-container::-webkit-scrollbar-thumb {
+.M-song-container::-webkit-scrollbar-thumb {
   background: #555;
   border-radius: 10px;
 }
 
-.song-container::-webkit-scrollbar-track {
+.M-song-container::-webkit-scrollbar-track {
   background: #222;
 }
 
-
-.song-card {
+.M-song-card {
   position: relative;
   background-color: #333;
   color: white;
   border-radius: 10px;
   padding: 15px;
-  width: 200px;
+  width: 180px;          
+  min-height: 180px;      
+  height: auto;           
   text-align: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s ease-in-out;
   flex: 0 0 auto;
   scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'SpaceGrotesk-Medium';
+  
+  
 }
 
-.song-card:hover {
+.M-song-card:hover {
   transform: scale(1.05);
 }
 
-.song-title {
-  font-size: 18px;
-  font-weight: bold;
+.M-song-title {
+  margin-bottom: 0px;
+  margin-top: 0px;
+  font-size: 16px;
+  font-weight: normal;
   word-wrap: break-word;
   white-space: normal;
   overflow-wrap: break-word;
 }
 
-.song-artist {
+.M-song-artist {
   font-size: 14px;
   color: #bbb;
+  margin-top: 10px;
   margin-bottom: 10px;
   word-wrap: break-word;
   white-space: normal;
@@ -266,11 +428,10 @@ body {
 }
 
 .song-checkbox {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  transform: scale(1.2);
+  transform: scale(1.3);
+  margin-right: 16px;
 }
+
 
 .button-row {
   display: flex;
@@ -286,8 +447,8 @@ body {
   bottom: 15px;
   z-index: 10;
   padding: 6px 12px;
-  background-color: #0dcaf0;
-  color: white;
+  background-color: #1db954;
+  color: black;
   border: none;
   border-radius: 8px;
   font-size: 14px;
@@ -298,7 +459,7 @@ body {
 
 
 .select-all-button:hover {
-  background-color: #138496;
+  background-color: #1ed760;
   transform: scale(1.05);
 }
 
@@ -326,8 +487,8 @@ body {
 .logout-button, .change-account-button {
   padding: 6px 12px;
   font-size: 12px;
-  background-color: #dc3545;
-  color: white;
+  background-color: #1DB954;
+  color: black;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -361,6 +522,8 @@ body {
 .match-fail {
   color: red;
   font-size: 14px;
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 
 .match-details {
@@ -381,6 +544,14 @@ body {
 .match-info {
   display: flex;
   flex-direction: column;
+}
+
+.album-cover {
+  width: 120px;     
+  height: 120px;    
+  object-fit: cover; 
+  border-radius: 8px; 
+  margin-bottom: 8px; 
 }
 
 .create-playlist-button {
@@ -445,12 +616,10 @@ body {
   background-color: #5a6268;
 } */
 
-
-/* 중앙 정렬용 패널 */
 .center-panel {
   width: 100%;
   max-width: 1000px;
-  padding: 20px;
+  padding: 0px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -458,7 +627,6 @@ body {
   justify-content: center;
 }
 
-/* 매칭 결과 영역 */
 .match-scroll-box {
   max-height: 400px;
   overflow-y: auto;
@@ -519,10 +687,7 @@ button {
     width: 45%;
     max-width: 50%;
     font-size: 20px;
-  }
-
-  .song-container{
-    margin-top: 40px;
+    left: -50px;
   }
 
   .h2{
@@ -530,14 +695,60 @@ button {
     font-size: 30px;
   }
 
-  .song-container {
+  .E-song-container-wrapper {
+    position: relative;
+    width: 90%;
+    max-width: 1000px;
+    margin: 0px auto 0 auto;
+  }
+
+  .E-song-container {
+    margin-top: 40px;
+    height: 400px; /* 세로 공간 늘리기 */
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  
+  .E-song-list {
+    display: flex;
+    flex-direction: column; /* 세로로 배치 */
+    gap: 15px;
+  }
+  
+  .E-song-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background-color: #333;
+    color: white;
+    border-radius: 10px;
+    padding: 15px 20px;
+    width: 94.6%;
+    height: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease-in-out;
+    font-family: 'SpaceGrotesk-Medium';
+    justify-content: flex-start;
+    text-align: left;
+  }
+  
+  .E-song-card:hover {
+    transform: scale(1.02);
+  }
+  
+  .E-song-card.selected {
+    border: 2px;
+    background-color: #2a2a2a;
+  }
+  .M-song-container {
+    margin-top: 40px;
     height: 250px;
     max-height: 400px;
     overflow-y: hidden;
     overflow-x: auto;
   }
 
-  .song-list {
+  .M-song-list {
     display: flex;
     flex-direction: row;
     gap: 10px;
