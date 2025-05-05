@@ -254,10 +254,20 @@ public class SpotifyService {
         ArtistSimplified[] artists = album.getArtists();
         String artistName = (artists.length > 0) ? artists[0].getName() : "Unknown Artist";
         Image[] images = album.getImages();
-        String imageUrl = (images.length > 0) ? images[0].getUrl() : "NO_IMAGE";
+
+        String imageUrl;
+        if (images != null && images.length > 0) {
+            imageUrl = images[0].getUrl();
+            log.info("✅ 이미지 URL: {}", imageUrl);
+        } else {
+            imageUrl = "NO_IMAGE";
+            log.warn("❌ 이미지 없음: {} - {}", title, artistName);
+        }
+
         String albumName = album.getName();
 
         SearchResponseDto dto = spotifyMapper.toSearchDto(artistName, title, albumName, imageUrl);
+        dto.setImageUrl(imageUrl);
         dto.setSpotifyTrackId(track.getId()); // Spotify 트랙 ID 저장
         return dto;
     }

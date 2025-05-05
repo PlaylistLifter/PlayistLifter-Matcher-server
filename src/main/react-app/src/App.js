@@ -18,6 +18,7 @@ function MainApp() {
   const [isMatched, setIsMatched] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPopupOpen,setIsPopupOpen]=useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   //0.로그인 로그아웃
 
@@ -150,6 +151,7 @@ function MainApp() {
       });
 
       setMatchedTracks(completeMatchedList);
+      console.log("🎵 matchedTracks:", completeMatchedList);
       setIsMatched(true);
       setSongs([]);
       setSelectedSongs([]);
@@ -228,6 +230,17 @@ function MainApp() {
             <>
               {screen === "home" && (//screen이 홈페이지로 셋 됐을때
                   <>
+                    {/* <button className="tutorial-button" onClick={() => setShowTutorial(true)}></button> */}
+                    {showTutorial && (
+                      <div className="tutorial-popup">
+                        <div className="tutorial-content">
+                          <span className="close-button" onClick={() => setShowTutorial(false)}>X</span>
+                          <h4>사용법 안내</h4>
+                          <img src="/step1.png" alt="튜토리얼1" />
+                          <img src="/step2.png" alt="튜토리얼2" />
+                        </div>
+                      </div>
+                    )}
                     <div className="search-wrapper">
                       <text className="logo">PLAYLIST_LIFTER_</text>
 
@@ -258,82 +271,116 @@ function MainApp() {
               )}
 
               {screen === "result" && (//screen 결과화면
-                  <div className="result-screen">
-              <span
-                  className="result-screen-logo-button"
-                  onClick={clearRepositories}
-              >PLAYLIST_LIFTER_</span>
-                    <div className="center-panel">
-                      {!isMatched && songs.length > 0 && (
-                          <>
-
-
-                            <div className="song-container-wrapper">
-                              <h2 className="h2">Songs from Youtube</h2>
-                              <div className="song-container">
-                                <div className="song-list">
-                                  {songs.map((song, index) => (
-                                      <div key={song.id || index} className="song-card">
-                                        <input
-                                            type="checkbox"
-                                            className="song-checkbox"
-                                            checked={selectedSongs.includes(String(song.id))}
-                                            onChange={() => toggleSelection(song.id)}
-                                        />
-                                        <p className="song-title">{song.title}</p>
-                                        <p className="song-artist">🎤 {song.artist}</p>
-                                      </div>
-                                  ))}
-                                </div>
+                <div className="result-screen">
+                  <span
+                    className="result-screen-logo-button"
+                    onClick={clearRepositories}
+                  >PLAYLIST_LIFTER_</span>
+                  <div className="center-panel">
+                    {!isMatched && songs.length > 0 && (
+                      <>
+                        <div className="E-song-container-wrapper">
+                          <h2 className="h2">Songs from Youtube</h2>
+                            <div className="E-song-container">
+                              <div className="E-song-list">
+                                {songs.map((song, index) => (
+                                  <div key={song.id || index} 
+                                    className={`E-song-card ${selectedSongs.includes(String(song.id)) ? "selected" : ""}`}
+                                    onClick={() => toggleSelection(song.id)}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      className="song-checkbox"
+                                      checked={selectedSongs.includes(String(song.id))}
+                                      readOnly // 직접 변경은 막고, 위에서 카드로 토글
+                                    />
+                                    <div className="E-song-info">
+                                      <p className="E-song-title">{song.title}</p>
+                                      <p className="E-song-artist">🎤 {song.artist}</p>
+                                    </div>
+                                  </div>
+                                ))}
                               </div>
-                              <button className="select-all-button" onClick={toggleSelectAll}>
-                                {selectedSongs.length === songs.length ? "all ✓" : "all"}
-                              </button>
                             </div>
-                          </>
-                      )}
-                      <div className="button-row">
-                        {!isSaved && songs.length > 0 && (
-                            <button className="save-button" onClick={saveSelectedSongs}>
-                              Start Matching
+                            <button className="select-all-button" onClick={toggleSelectAll}>
+                              {selectedSongs.length === songs.length ? "all ✓" : "all"}
                             </button>
-                        )}
-                      </div>
-                      {matchedTracks.length > 0 && (
-                          <div className="match-results">
-                            <h3 className="h3">Your Song List</h3>
-                            <div className="match-scroll-box">
-                              <ul className="match-list">
-                                {matchedTracks.map((match, idx) => {
-                                  const isMatched = match.spotifyTrackId && match.spotifyTrackId.trim() !== "";
-                                  return (
-                                      <li key={idx} className="match-item">
-                                        <div className="match-info">
-                                          <strong>{match.originalTitle} - {match.originalArtist}</strong>
-                                          <span className={isMatched ? "match-success" : "match-fail"}>
-                                  {isMatched ? "✓ 매칭 성공" : "✗ 매칭 실패"}
-                                </span>
-                                          {isMatched && (
-                                              <span className="match-details">
-                                    Spotify: {match.matchedArtist} - {match.matchedTitle}
-                                  </span>
-                                          )}
-                                        </div>
-                                      </li>
-                                  );
-                                })}
-                              </ul>
-                            </div>
-                            <button className="create-playlist-button" onClick={createSpotifyPlaylist}>
-                              Create Spotify Playlist
-                            </button>
-                          </div>
+                        </div>
+                      </>
+                    )}
+                    <div className="button-row">
+                      {!isSaved && songs.length > 0 && (
+                        <button className="save-button" onClick={saveSelectedSongs}>
+                          Start Matching
+                        </button>
                       )}
                     </div>
+                    {matchedTracks.length > 0 && (
+                      <div className="M-song-container-wrapper">
+                        <h2 className="h2">Your Song List</h2>
+                        <div className="M-song-container">
+                          <div className="M-song-list">
+                            {matchedTracks.map((match, idx) => {
+                              const isMatched = match.spotifyTrackId && match.spotifyTrackId.trim() !== "";
+                              return (
+                                <div key={idx} className="M-song-card">
+                                  <img
+                                    src={isMatched ? (match.imageUrl || "/default_album_cover.png") : "/default_album_cover.png"}
+                                    alt="Album Cover"
+                                    className="album-cover"
+                                  />
+                                  <p className="M-song-title">
+                                  {isMatched ? match.matchedTitle : match.originalTitle}
+                                  </p>
+                                  <p className="M-song-artist">
+                                    🎤 {isMatched ? match.matchedArtist : match.originalArtist}
+                                  </p>
+                                  {!isMatched && (
+                                    <p className="match-fail">✗ 매칭 실패</p>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <button className="create-playlist-button" onClick={createSpotifyPlaylist}>
+                          Create Spotify Playlist
+                        </button>
+                      </div>
+                      // <div className="match-results">
+                      //   <h3 className="h3">Your Song List</h3>
+                      //   <div className="match-scroll-box">
+                      //     <ul className="match-list">
+                      //       {matchedTracks.map((match, idx) => {
+                      //         const isMatched = match.spotifyTrackId && match.spotifyTrackId.trim() !== "";
+                      //         return (
+                      //           <li key={idx} className="match-item">
+                      //             <div className="match-info">
+                      //               <strong>{match.originalTitle} - {match.originalArtist}</strong>
+                      //                 <span className={isMatched ? "match-success" : "match-fail"}>
+                      //                   {isMatched ? "✓ 매칭 성공" : "✗ 매칭 실패"}
+                      //                 </span>
+                      //                 {isMatched && (
+                      //                   <span className="match-details">
+                      //                     Spotify: {match.matchedArtist} - {match.matchedTitle}
+                      //                   </span>
+                      //                 )}
+                      //             </div>
+                      //           </li>
+                      //         );
+                      //       })}
+                      //     </ul>
+                      //   </div>
+                      //   <button className="create-playlist-button" onClick={createSpotifyPlaylist}>
+                      //     Create Spotify Playlist
+                      //   </button>
+                      // </div>
+                    )}
                   </div>
+                </div>
               )}
             </>
-        )}
+          )}
       </div>
   );
 }
